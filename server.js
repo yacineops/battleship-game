@@ -1,14 +1,16 @@
 const http = require("http");
 const WebSocket = require("ws");
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
+const BOARD_SIZE = 10;
+const BOARD_CELLS = BOARD_SIZE * BOARD_SIZE;
 
 const server = http.createServer((req, res) => {
     res.writeHead(200, {
         "Content-Type": "text/plain; charset=utf-8"
     });
 
-    res.end("Battleship Server is running!");
+    res.end("معركة السفن - WebSocket Server يعمل");
 });
 
 const wss = new WebSocket.Server({ server });
@@ -17,1336 +19,597 @@ const rooms = new Map();
 const connections = new Set();
 
 let nextPlayerId = 1;
+let nextRoomId = 1;
 
-const BOARD_SIZE = 10;
+function send(ws, data) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-const SHIP_TYPES = {
-    1: { length: 1, value: 1 },
-    2: { length: 2, value: 2 },
-    3: { length: 3, value: 3 },
-    4: { length: 4, value: 4 }
-};
+    ws.send(JSON.stringify(data));
+}
 
-const SHIP_COUNTS = {
-    1: 5,
-    2: 3,
-    3: 3,
-    4: 2
-};
-
-function createPlayer(id, ws) {
+function createPlayer(ws, name = "لاعب") {
     return {
-        id,
+        id: String(nextPlayerId++),
+        name: String(name || "لاعب").slice(0, 30),
         ws,
-
-        name: "Player",
-
-        cells: Array(100).fill(0),
-        ships: [],
-
-        hits: [],
-        misses: [],
-
-        bombs: 2,
-        missiles: 1,
-
-        score: 0
+        roomId: null,
+        ready: false,
+        battleReady: false,
+        grid: createEmptyGrid(),
+        shipCells: new Set(),
+        attackedCells: new Set()
     };
+}
+
+function createEmptyGrid() {
+    return Array.from(
+        { length: BOARD_SIZE },
+        () => Array(BOARD_SIZE).fill("")
+    );
 }
 
 function createRoomCode() {
     let code;
 
     do {
-        code = Math.floor(100000 + Math.random() * 900000).toString();
+        code = String(nextRoomId++).padStart(4, "0");
     } while (rooms.has(code));
 
     return code;
 }
 
-function createRoom(player) {
-
-    const code = createRoomCode();
-
+function createRoom(roomName, owner) {
     const room = {
-        code,
-
-        players: [player],
-
-        setupStartTime: null,
-        battleStarted: false,
-
-        currentPlayer: null,
-
-        turnTimer: null,
-        turnEndTime: null
+        id: createRoomCode(),
+        name: String(roomName || "غرفة").slice(0, 40),
+        players: [owner],
+        started: false,
+        currentPlayerId: null,
+        winnerId: null
     };
 
-    player.roomCode = code;
-
-    rooms.set(code, room);
+    rooms.set(room.id, room);
+    owner.roomId = room.id;
 
     return room;
 }
 
 function getRoom(player) {
-
-    if (!player.roomCode) {
-        return null;
-    }
-
-    return rooms.get(player.roomCode) || null;
+    if (!player || !player.roomId) return null;
+    return rooms.get(player.roomId) || null;
 }
 
 function getOpponent(room, player) {
+    if (!room) return null;
 
     return room.players.find(
-        p => p.id !== player.id
+        other => other.id !== player.id
     ) || null;
 }
 
-function send(player, data) {
-
-    if (
-        player &&
-        player.ws &&
-        player.ws.readyState === WebSocket.OPEN
-    ) {
-        player.ws.send(JSON.stringify(data));
-    }
-}
-
 function broadcastRoom(room, data) {
+    if (!room) return;
 
     for (const player of room.players) {
-        send(player, data);
+        send(player.ws, data);
     }
 }
 
-function broadcastOnlineCount() {
+function sendRoomInfo(room) {
+    if (!room) return;
 
-    const count = connections.size;
-
-    for (const ws of connections) {
-
-        if (ws.readyState === WebSocket.OPEN) {
-
-            ws.send(JSON.stringify({
-                type: "onlineCount",
-                count
-            }));
-        }
-    }
-}
-
-function resetPlayer(player) {
-
-    player.cells.fill(0);
-    player.ships = [];
-
-    player.hits = [];
-    player.misses = [];
-
-    player.bombs = 2;
-    player.missiles = 1;
-
-    player.score = 0;
-}
-
-function randomEmptyPlacement(player, type) {
-
-    const length = SHIP_TYPES[type].length;
-
-    for (let attempt = 0; attempt < 1000; attempt++) {
-
-        const horizontal = Math.random() < 0.5;
-
-        const row = Math.floor(Math.random() * 10);
-        const col = Math.floor(Math.random() * 10);
-
-        const cells = [];
-
-        for (let i = 0; i < length; i++) {
-
-            const r = horizontal ? row : row + i;
-            const c = horizontal ? col + i : col;
-
-            if (r >= 10 || c >= 10) {
-                break;
-            }
-
-            cells.push(r * 10 + c);
-        }
-
-        if (cells.length !== length) {
-            continue;
-        }
-
-        if (cells.some(index => player.cells[index] !== 0)) {
-            continue;
-        }
-
-        const ship = {
-            id: player.ships.length + 1,
-            type,
-            length,
-            value: SHIP_TYPES[type].value,
-            orientation: horizontal
-                ? "horizontal"
-                : "vertical",
-            cells,
-            hits: []
-        };
-
-        player.ships.push(ship);
-
-        cells.forEach(index => {
-            player.cells[index] = type;
+    for (const player of room.players) {
+        send(player.ws, {
+            type: "roomInfo",
+            roomId: room.id,
+            roomName: room.name,
+            players: room.players.map(other => ({
+                id: other.id,
+                name: other.name,
+                ready: other.ready,
+                battleReady: other.battleReady
+            }))
         });
-
-        return true;
-    }
-
-    return false;
-}
-
-function randomCompletePlayer(player) {
-
-    player.cells.fill(0);
-    player.ships = [];
-
-    for (const type of [1, 2, 3, 4]) {
-
-        for (let i = 0; i < SHIP_COUNTS[type]; i++) {
-            randomEmptyPlacement(player, type);
-        }
     }
 }
 
-function allShipsPlaced(player) {
+function normalizeGrid(grid) {
+    const result = createEmptyGrid();
 
-    let count = 0;
-
-    for (const type of [1, 2, 3, 4]) {
-
-        count += player.ships.filter(
-            ship => ship.type === type
-        ).length;
+    if (!Array.isArray(grid)) {
+        return result;
     }
 
-    return count === 13;
-}
-
-function getNextShipType(player) {
-
-    for (const type of [1, 2, 3, 4]) {
-
-        const count = player.ships.filter(
-            ship => ship.type === type
-        ).length;
-
-        if (count < SHIP_COUNTS[type]) {
-            return type;
-        }
-    }
-
-    return null;
-}
-
-/* =========================
-   Public battle state
-========================= */
-
-function publicState(player, opponent, room) {
-
-    const visibleOpponentShips = [];
-
-    if (opponent) {
-
-        for (const ship of opponent.ships) {
-
-            if (ship.hits.length === ship.cells.length) {
-
-                visibleOpponentShips.push({
-                    cells: ship.cells,
-                    type: ship.type,
-                    sunk: true
-                });
-            }
-        }
-    }
-
-    let timer = 0;
-
-    if (room.turnEndTime) {
-
-        timer = Math.max(
-            0,
-            Math.ceil(
-                (room.turnEndTime - Date.now()) / 1000
-            )
-        );
-    }
-
-    return {
-
-        myTurn: room.currentPlayer === player.id,
-
-        timer,
-
-        me: {
-            cells: player.cells,
-            ships: player.ships,
-            hits: player.hits,
-            misses: player.misses,
-            bombs: player.bombs,
-            missiles: player.missiles
-        },
-
-        opponent: {
-            hits: opponent ? opponent.hits.slice() : [],
-            misses: opponent ? opponent.misses.slice() : [],
-            sunkShips: visibleOpponentShips
-        }
-    };
-}
-
-function broadcastBattleState(room) {
-
-    if (room.players.length !== 2) {
-        return;
-    }
-
-    const a = room.players[0];
-    const b = room.players[1];
-
-    send(a, {
-        type: "battleState",
-        state: publicState(a, b, room)
-    });
-
-    send(b, {
-        type: "battleState",
-        state: publicState(b, a, room)
-    });
-}
-
-/* =========================
-   Setup
-========================= */
-
-function startSetup(room) {
-
-    room.setupStartTime = Date.now();
-    room.battleStarted = false;
-    room.currentPlayer = null;
-
-    for (const player of room.players) {
-        resetPlayer(player);
-    }
-
-    for (const player of room.players) {
-        sendSetupState(player);
-    }
-}
-
-function sendSetupState(player) {
-
-    const room = getRoom(player);
-
-    if (!room || !room.setupStartTime) {
-        return;
-    }
-
-    const remaining = Math.max(
-        0,
-        60 - Math.floor(
-            (Date.now() - room.setupStartTime) / 1000
-        )
-    );
-
-    send(player, {
-        type: "setupState",
-
-        setup: {
-            remainingSeconds: remaining,
-
-            nextShipType: getNextShipType(player),
-
-            occupied: player.ships.flatMap(
-                ship => ship.cells
-            ),
-
-            cells: player.cells
-        }
-    });
-}
-
-function checkSetupFinished(room) {
-
-    if (!room || room.players.length !== 2) {
-        return;
-    }
-
-    if (room.players.every(allShipsPlaced)) {
-        beginBattle(room);
-    }
-}
-
-function beginBattle(room) {
-
-    if (room.battleStarted) {
-        return;
-    }
-
-    for (const player of room.players) {
-
-        if (!allShipsPlaced(player)) {
-            randomCompletePlayer(player);
-        }
-    }
-
-    room.battleStarted = true;
-
-    room.currentPlayer =
-        room.players[
-            Math.floor(
-                Math.random() * room.players.length
-            )
-        ].id;
-
-    startTurnTimer(room);
-
-    broadcastBattleState(room);
-}
-
-/* =========================
-   Placement
-========================= */
-
-function placeShip(player, type, cells) {
-
-    const room = getRoom(player);
-
-    if (!room || room.battleStarted) {
-        return;
-    }
-
-    if (!SHIP_TYPES[type]) {
-        return;
-    }
-
-    if (cells.length !== SHIP_TYPES[type].length) {
-        return;
-    }
-
-    if (cells.some(
-        index =>
-            index < 0 ||
-            index >= 100 ||
-            player.cells[index] !== 0
-    )) {
-        return;
-    }
-
-    const sorted = [...cells].sort(
-        (a, b) => a - b
-    );
-
-    const rows = sorted.map(
-        i => Math.floor(i / 10)
-    );
-
-    const cols = sorted.map(
-        i => i % 10
-    );
-
-    const sameRow = rows.every(
-        row => row === rows[0]
-    );
-
-    const sameCol = cols.every(
-        col => col === cols[0]
-    );
-
-    let orientation = null;
-
-    if (sameRow) {
-
-        for (let i = 1; i < cols.length; i++) {
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        if (!Array.isArray(grid[row])) continue;
+
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            const value = grid[row][col];
 
             if (
-                cols[i] !==
-                cols[i - 1] + 1
+                value === "ship" ||
+                value === "hit" ||
+                value === "miss"
             ) {
-                return;
+                result[row][col] = value;
+            } else {
+                result[row][col] = "";
             }
         }
-
-        orientation = "horizontal";
-
-    } else if (sameCol) {
-
-        for (let i = 1; i < rows.length; i++) {
-
-            if (
-                rows[i] !==
-                rows[i - 1] + 1
-            ) {
-                return;
-            }
-        }
-
-        orientation = "vertical";
-
-    } else {
-        return;
     }
 
-    const existingCount =
-        player.ships.filter(
-            ship => ship.type === type
-        ).length;
-
-    if (existingCount >= SHIP_COUNTS[type]) {
-        return;
-    }
-
-    const ship = {
-        id: player.ships.length + 1,
-        type,
-        length: SHIP_TYPES[type].length,
-        value: SHIP_TYPES[type].value,
-        orientation,
-        cells: sorted,
-        hits: []
-    };
-
-    player.ships.push(ship);
-
-    sorted.forEach(index => {
-        player.cells[index] = type;
-    });
-
-    sendSetupState(player);
-
-    checkSetupFinished(room);
+    return result;
 }
 
-/* =========================
-   Attack
-========================= */
+function getShipCells(grid) {
+    const cells = new Set();
 
-function getAttackCells(target, weapon, direction) {
-
-    if (
-        target < 0 ||
-        target >= 100
-    ) {
-        return [];
-    }
-
-    if (weapon === "normal") {
-        return [target];
-    }
-
-    const row = Math.floor(target / 10);
-    const col = target % 10;
-
-    if (weapon === "bomb") {
-
-        const cells = [];
-
-        for (
-            let r = row - 1;
-            r <= row + 1;
-            r++
-        ) {
-
-            for (
-                let c = col - 1;
-                c <= col + 1;
-                c++
-            ) {
-
-                if (
-                    r >= 0 &&
-                    r < 10 &&
-                    c >= 0 &&
-                    c < 10
-                ) {
-                    cells.push(r * 10 + c);
-                }
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
+            if (grid[row][col] === "ship") {
+                cells.add(row * BOARD_SIZE + col);
             }
         }
-
-        return cells;
     }
 
-    if (weapon === "missile") {
-
-        const cells = [];
-
-        if (direction === "row") {
-
-            for (let c = 0; c < 10; c++) {
-                cells.push(row * 10 + c);
-            }
-
-        } else if (direction === "column") {
-
-            for (let r = 0; r < 10; r++) {
-                cells.push(r * 10 + col);
-            }
-        }
-
-        return cells;
-    }
-
-    return [];
+    return cells;
 }
 
-function attack(
-    attacker,
-    target,
-    weapon,
-    direction
-) {
+function resetPlayerBattleData(player) {
+    player.ready = false;
+    player.battleReady = false;
+    player.grid = createEmptyGrid();
+    player.shipCells = new Set();
+    player.attackedCells = new Set();
+}
 
-    const room = getRoom(attacker);
+function startBattle(room) {
+    if (!room || room.players.length !== 2) return;
+    if (room.started) return;
 
-    if (!room || !room.battleStarted) {
-        return;
-    }
+    const firstPlayer = room.players[0];
 
-    if (room.currentPlayer !== attacker.id) {
-        return;
-    }
+    room.started = true;
+    room.currentPlayerId = firstPlayer.id;
+    room.winnerId = null;
 
-    const defender = getOpponent(
-        room,
-        attacker
-    );
-
-    if (!defender) {
-        return;
-    }
-
-    if (
-        target < 0 ||
-        target >= 100
-    ) {
-        return;
-    }
-
-    if (
-        weapon !== "normal" &&
-        weapon !== "bomb" &&
-        weapon !== "missile"
-    ) {
-        return;
-    }
-
-    if (weapon === "bomb") {
-
-        if (attacker.bombs <= 0) {
-
-            send(attacker, {
-                type: "error",
-                message: "No bombs available."
-            });
-
-            return;
-        }
-
-        attacker.bombs--;
-    }
-
-    if (weapon === "missile") {
-
-        if (attacker.missiles <= 0) {
-
-            send(attacker, {
-                type: "error",
-                message: "No missiles available."
-            });
-
-            return;
-        }
-
-        if (
-            direction !== "row" &&
-            direction !== "column"
-        ) {
-            attacker.missiles++;
-            return;
-        }
-
-        attacker.missiles--;
-    }
-
-    const cells = getAttackCells(
-        target,
-        weapon,
-        direction
-    );
-
-    if (cells.length === 0) {
-        return;
-    }
-
-    let hit = false;
-    let sunk = false;
-
-    for (const index of cells) {
-
-        if (defender.hits.includes(index)) {
-            continue;
-        }
-
-        const ship = defender.ships.find(
-            s => s.cells.includes(index)
-        );
-
-        if (!ship) {
-
-            if (
-                !defender.misses.includes(index)
-            ) {
-                defender.misses.push(index);
-            }
-
-            continue;
-        }
-
-        hit = true;
-
-        if (!ship.hits.includes(index)) {
-            ship.hits.push(index);
-        }
-
-        if (
-            ship.hits.length ===
-            ship.cells.length
-        ) {
-
-            sunk = true;
-
-            attacker.score += ship.value;
-
-            if (ship.type === 3) {
-                attacker.bombs++;
-            }
-
-            if (ship.type === 4) {
-                attacker.missiles++;
-            }
-        }
-
-        if (!defender.hits.includes(index)) {
-            defender.hits.push(index);
-        }
-    }
-
-    clearTurnTimer(room);
-
-    let result = "miss";
-
-    if (sunk) {
-        result = "sunk";
-    } else if (hit) {
-        result = "hit";
-    }
-
-    send(attacker, {
-        type: "attackResult",
-
-        result,
-
-        state: publicState(
-            attacker,
-            defender,
-            room
-        )
-    });
-
-    send(defender, {
-        type: "attackResult",
-
-        result,
-
-        state: publicState(
-            defender,
-            attacker,
-            room
-        )
-    });
-
-    const defenderLost =
-        defender.ships.length > 0 &&
-        defender.ships.every(
-            ship =>
-                ship.hits.length ===
-                ship.cells.length
-        );
-
-    if (defenderLost) {
-
-        send(attacker, {
-            type: "gameOver",
-            winner: attacker.id,
-            myScore: attacker.score,
-            opponentScore: defender.score
+    for (const player of room.players) {
+        send(player.ws, {
+            type: "startGame",
+            roomId: room.id,
+            grid: player.grid,
+            firstPlayer: firstPlayer.id,
+            playerId: player.id,
+            opponentId: getOpponent(room, player)?.id || null
         });
-
-        send(defender, {
-            type: "gameOver",
-            winner: attacker.id,
-            myScore: defender.score,
-            opponentScore: attacker.score
-        });
-
-        room.battleStarted = false;
-        room.currentPlayer = null;
-
-        return;
     }
-
-    room.currentPlayer = defender.id;
-
-    startTurnTimer(room);
-
-    broadcastBattleState(room);
 }
 
-/* =========================
-   Movement
-========================= */
-
-function moveShip(
-    player,
-    shipId,
-    direction
-) {
-
-    const room = getRoom(player);
-
-    if (!room || !room.battleStarted) {
-        return;
+function handleConnect(player, message) {
+    if (message.playerName || message.name) {
+        player.name = String(
+            message.playerName || message.name
+        ).slice(0, 30);
     }
 
-    if (room.currentPlayer !== player.id) {
-        return;
-    }
-
-    const ship = player.ships.find(
-        s => s.id === shipId
-    );
-
-    if (!ship) {
-        return;
-    }
-
-    if (
-        ship.hits.length ===
-        ship.cells.length
-    ) {
-        return;
-    }
-
-    if (
-        ship.orientation === "horizontal" &&
-        direction !== "left" &&
-        direction !== "right"
-    ) {
-        return;
-    }
-
-    if (
-        ship.orientation === "vertical" &&
-        direction !== "up" &&
-        direction !== "down"
-    ) {
-        return;
-    }
-
-    let dr = 0;
-    let dc = 0;
-
-    if (direction === "left") dc = -1;
-    if (direction === "right") dc = 1;
-    if (direction === "up") dr = -1;
-    if (direction === "down") dr = 1;
-
-    const newCells = ship.cells.map(
-        index => {
-
-            const row = Math.floor(
-                index / 10
-            );
-
-            const col = index % 10;
-
-            return (
-                (row + dr) * 10 +
-                (col + dc)
-            );
-        }
-    );
-
-    if (newCells.some(index => {
-
-        if (
-            index < 0 ||
-            index >= 100
-        ) {
-            return true;
-        }
-
-        const oldShipCell =
-            ship.cells.includes(index);
-
-        return (
-            !oldShipCell &&
-            player.cells[index] !== 0
-        );
-
-    })) {
-        return;
-    }
-
-    ship.cells.forEach(index => {
-        player.cells[index] = 0;
+    send(player.ws, {
+        type: "connected",
+        playerId: player.id,
+        playerName: player.name
     });
+}
 
-    ship.cells = newCells;
+function handleCreateRoom(player, message) {
+    if (player.roomId) {
+        send(player.ws, {
+            type: "error",
+            message: "أنت داخل غرفة بالفعل"
+        });
+        return;
+    }
 
-    ship.cells.forEach(index => {
-        player.cells[index] = ship.type;
-    });
+    if (message.playerName || message.name) {
+        player.name = String(
+            message.playerName || message.name
+        ).slice(0, 30);
+    }
 
-    clearTurnTimer(room);
-
-    const opponent = getOpponent(
-        room,
+    const room = createRoom(
+        message.roomName || "غرفة جديدة",
         player
     );
 
-    if (opponent) {
-        room.currentPlayer = opponent.id;
-    }
+    send(player.ws, {
+        type: "roomCreated",
+        roomId: room.id,
+        roomName: room.name,
+        playerId: player.id,
+        waiting: true
+    });
 
-    startTurnTimer(room);
-
-    broadcastBattleState(room);
+    sendRoomInfo(room);
 }
 
-/* =========================
-   Turn timer
-========================= */
-
-function clearTurnTimer(room) {
-
-    if (room.turnTimer) {
-        clearTimeout(room.turnTimer);
-        room.turnTimer = null;
-    }
-
-    room.turnEndTime = null;
-}
-
-function startTurnTimer(room) {
-
-    clearTurnTimer(room);
-
-    if (
-        !room.battleStarted ||
-        room.players.length !== 2
-    ) {
+function handleJoinRoom(player, message) {
+    if (player.roomId) {
+        send(player.ws, {
+            type: "error",
+            message: "أنت داخل غرفة بالفعل"
+        });
         return;
     }
 
-    room.turnEndTime =
-        Date.now() + 15000;
+    const roomId = String(
+        message.roomId ||
+        message.roomCode ||
+        ""
+    ).trim();
 
-    room.turnTimer = setTimeout(() => {
+    if (!roomId) {
+        send(player.ws, {
+            type: "error",
+            message: "أدخل رمز الغرفة"
+        });
+        return;
+    }
 
-        if (!room.battleStarted) {
-            return;
-        }
+    const room = rooms.get(roomId);
 
-        const current =
-            room.players.find(
-                p => p.id === room.currentPlayer
-            );
+    if (!room) {
+        send(player.ws, {
+            type: "error",
+            message: "الغرفة غير موجودة"
+        });
+        return;
+    }
 
-        if (!current) {
-            return;
-        }
+    if (room.players.length >= 2) {
+        send(player.ws, {
+            type: "error",
+            message: "الغرفة ممتلئة"
+        });
+        return;
+    }
 
-        const opponent =
-            getOpponent(room, current);
+    if (message.playerName || message.name) {
+        player.name = String(
+            message.playerName || message.name
+        ).slice(0, 30);
+    }
 
-        if (!opponent) {
-            return;
-        }
+    room.players.push(player);
+    player.roomId = room.id;
 
-        room.currentPlayer =
-            opponent.id;
+    send(player.ws, {
+        type: "roomJoined",
+        roomId: room.id,
+        roomName: room.name,
+        playerId: player.id
+    });
 
-        startTurnTimer(room);
+    const owner = room.players[0];
 
-        broadcastBattleState(room);
+    send(owner.ws, {
+        type: "playerJoined",
+        playerId: player.id,
+        playerName: player.name
+    });
 
-    }, 15000);
+    sendRoomInfo(room);
 }
 
-/* =========================
-   Room leaving
-========================= */
-
-function leaveRoom(player) {
-
+function handleReady(player) {
     const room = getRoom(player);
 
     if (!room) {
+        send(player.ws, {
+            type: "error",
+            message: "لست داخل غرفة"
+        });
         return;
     }
 
-    clearTurnTimer(room);
+    player.ready = true;
 
-    room.players =
-        room.players.filter(
-            p => p.id !== player.id
-        );
+    broadcastRoom(room, {
+        type: "playerReady",
+        playerId: player.id,
+        playerName: player.name
+    });
 
-    player.roomCode = null;
-
-    if (room.players.length > 0) {
-
-        const remaining =
-            room.players[0];
-
-        send(remaining, {
-            type: "roomClosed",
-            message: "The other player left the room."
-        });
-
-        remaining.roomCode = null;
-    }
-
-    rooms.delete(room.code);
+    sendRoomInfo(room);
 }
 
-/* =========================
-   WebSocket
-========================= */
+function handleBattleReady(player, message) {
+    const room = getRoom(player);
+
+    if (!room) {
+        send(player.ws, {
+            type: "error",
+            message: "لست داخل غرفة"
+        });
+        return;
+    }
+
+    if (room.players.length !== 2) {
+        send(player.ws, {
+            type: "error",
+            message: "انتظر دخول لاعب آخر"
+        });
+        return;
+    }
+
+    player.grid = normalizeGrid(message.grid);
+    player.shipCells = getShipCells(player.grid);
+    player.attackedCells = new Set();
+    player.battleReady = true;
+
+    broadcastRoom(room, {
+        type: "playerBattleReady",
+        playerId: player.id
+    });
+
+    sendRoomInfo(room);
+
+    if (
+        room.players.length === 2 &&
+        room.players.every(other => other.battleReady)
+    ) {
+        startBattle(room);
+    }
+}
+
+function handleAttack(player, message) {
+    const room = getRoom(player);
+
+    if (!room || !room.started) {
+        send(player.ws, {
+            type: "error",
+            message: "المعركة لم تبدأ بعد"
+        });
+        return;
+    }
+
+    if (room.currentPlayerId !== player.id) {
+        send(player.ws, {
+            type: "error",
+            message: "ليس دورك"
+        });
+        return;
+    }
+
+    const opponent = getOpponent(room, player);
+
+    if (!opponent) {
+        send(player.ws, {
+            type: "error",
+            message: "لا يوجد خصم"
+        });
+        return;
+    }
+
+    const row = Number(message.row);
+    const col = Number(message.col);
+
+    if (
+        !Number.isInteger(row) ||
+        !Number.isInteger(col) ||
+        row < 0 ||
+        row >= BOARD_SIZE ||
+        col < 0 ||
+        col >= BOARD_SIZE
+    ) {
+        send(player.ws, {
+            type: "error",
+            message: "موقع الهجوم غير صحيح"
+        });
+        return;
+    }
+
+    const cell = row * BOARD_SIZE + col;
+
+    if (player.attackedCells.has(cell)) {
+        send(player.ws, {
+            type: "error",
+            message: "لقد هاجمت هذه الخانة من قبل"
+        });
+        return;
+    }
+
+    player.attackedCells.add(cell);
+
+    const hit = opponent.shipCells.has(cell);
+
+    if (hit) {
+        opponent.grid[row][col] = "hit";
+    } else {
+        opponent.grid[row][col] = "miss";
+    }
+
+    const attackResult = {
+        type: "attackResult",
+        attackerId: player.id,
+        row,
+        col,
+        hit,
+        nextPlayerId: hit ? player.id : opponent.id
+    };
+
+    send(player.ws, attackResult);
+    send(opponent.ws, attackResult);
+
+    const allShipsDestroyed = [...opponent.shipCells].every(
+        shipCell => player.attackedCells.has(shipCell)
+    );
+
+    if (opponent.shipCells.size > 0 && allShipsDestroyed) {
+        room.started = false;
+        room.winnerId = player.id;
+
+        broadcastRoom(room, {
+            type: "gameOver",
+            winner: player.id,
+            winnerId: player.id,
+            loserId: opponent.id
+        });
+
+        return;
+    }
+
+    if (!hit) {
+        room.currentPlayerId = opponent.id;
+    }
+
+    broadcastRoom(room, {
+        type: "turnChanged",
+        currentPlayerId: room.currentPlayerId
+    });
+}
+
+function handleLeaveRoom(player) {
+    const room = getRoom(player);
+
+    if (!room) {
+        player.roomId = null;
+        return;
+    }
+
+    room.players = room.players.filter(
+        other => other.id !== player.id
+    );
+
+    player.roomId = null;
+    resetPlayerBattleData(player);
+
+    if (room.players.length === 0) {
+        rooms.delete(room.id);
+        return;
+    }
+
+    const remainingPlayer = room.players[0];
+
+    remainingPlayer.roomId = room.id;
+    room.started = false;
+    room.currentPlayerId = null;
+    room.winnerId = null;
+
+    resetPlayerBattleData(remainingPlayer);
+
+    send(remainingPlayer.ws, {
+        type: "opponentLeft",
+        message: "غادر اللاعب الآخر الغرفة"
+    });
+
+    sendRoomInfo(room);
+}
+
+function handleMessage(player, message) {
+    if (!message || typeof message !== "object") {
+        return;
+    }
+
+    switch (message.type) {
+        case "connect":
+            handleConnect(player, message);
+            break;
+
+        case "join":
+            handleConnect(player, message);
+            break;
+
+        case "setName":
+            handleConnect(player, message);
+            break;
+
+        case "createRoom":
+            handleCreateRoom(player, message);
+            break;
+
+        case "joinRoom":
+            handleJoinRoom(player, message);
+            break;
+
+        case "ready":
+            handleReady(player);
+            break;
+
+        case "battleReady":
+            handleBattleReady(player, message);
+            break;
+
+        case "attack":
+            handleAttack(player, message);
+            break;
+
+        case "leaveRoom":
+            handleLeaveRoom(player);
+            break;
+
+        case "roomList":
+            send(player.ws, {
+                type: "roomList",
+                rooms: [...rooms.values()]
+                    .filter(room => room.players.length < 2)
+                    .map(room => ({
+                        roomId: room.id,
+                        roomName: room.name,
+                        players: room.players.length
+                    }))
+            });
+            break;
+
+        case "ping":
+            send(player.ws, {
+                type: "pong"
+            });
+            break;
+
+        default:
+            send(player.ws, {
+                type: "error",
+                message: "أمر غير معروف"
+            });
+    }
+}
 
 wss.on("connection", ws => {
-
-    connections.add(ws);
-
-    const player =
-        createPlayer(
-            nextPlayerId++,
-            ws
-        );
+    const player = createPlayer(ws);
 
     ws.player = player;
+    connections.add(ws);
 
-    broadcastOnlineCount();
+    send(ws, {
+        type: "connected",
+        playerId: player.id,
+        playerName: player.name
+    });
 
-    ws.on("message", raw => {
-
-        let message;
-
+    ws.on("message", rawMessage => {
         try {
-            message = JSON.parse(raw);
-        } catch {
-            return;
-        }
-
-        /* =====================
-           Online count
-        ===================== */
-
-        if (message.type === "getOnlineCount") {
-
-            send(player, {
-                type: "onlineCount",
-                count: connections.size
-            });
-
-            return;
-        }
-
-        /* =====================
-           Create room
-        ===================== */
-
-        if (message.type === "createRoom") {
-
-            if (getRoom(player)) {
-
-                send(player, {
-                    type: "error",
-                    message: "You are already in a room."
-                });
-
-                return;
-            }
-
-            if (message.name) {
-                player.name =
-                    String(message.name)
-                        .slice(0, 20);
-            }
-
-            const room =
-                createRoom(player);
-
-            send(player, {
-                type: "roomCreated",
-
-                roomCode: room.code,
-
-                playerId: player.id,
-
-                waiting: true
-            });
-
-            return;
-        }
-
-        /* =====================
-           Join room
-        ===================== */
-
-        if (message.type === "joinRoom") {
-
-            if (getRoom(player)) {
-
-                send(player, {
-                    type: "error",
-                    message: "You are already in a room."
-                });
-
-                return;
-            }
-
-            const code =
-                String(
-                    message.roomCode || ""
-                ).trim();
-
-            const room =
-                rooms.get(code);
-
-            if (!room) {
-
-                send(player, {
-                    type: "error",
-                    message: "Room not found."
-                });
-
-                return;
-            }
-
-            if (room.players.length >= 2) {
-
-                send(player, {
-                    type: "error",
-                    message: "Room is full."
-                });
-
-                return;
-            }
-
-            if (message.name) {
-                player.name =
-                    String(message.name)
-                        .slice(0, 20);
-            }
-
-            room.players.push(player);
-
-            player.roomCode = room.code;
-
-            send(player, {
-                type: "roomJoined",
-
-                roomCode: room.code,
-
-                playerId: player.id,
-
-                waiting: false
-            });
-
-            const host =
-                room.players[0];
-
-            send(host, {
-                type: "opponentJoined",
-                opponentName: player.name
-            });
-
-            startSetup(room);
-
-            return;
-        }
-
-        /* =====================
-           Leave room
-        ===================== */
-
-        if (message.type === "leaveRoom") {
-
-            leaveRoom(player);
-
-            send(player, {
-                type: "leftRoom"
-            });
-
-            return;
-        }
-
-        /* =====================
-           Join online mode
-        ===================== */
-
-        if (message.type === "join") {
-
-            send(player, {
-                type: "joined",
-                playerId: player.id
-            });
-
-            return;
-        }
-
-        /* =====================
-           Set player name
-        ===================== */
-
-        if (message.type === "setName") {
-
-            player.name =
-                String(
-                    message.name || "Player"
-                ).slice(0, 20);
-
-            send(player, {
-                type: "nameChanged",
-                name: player.name
-            });
-
-            return;
-        }
-
-        /* =====================
-           Placement
-        ===================== */
-
-        if (message.type === "placeShip") {
-
-            placeShip(
-                player,
-                Number(message.shipType),
-                Array.isArray(message.cells)
-                    ? message.cells.map(Number)
-                    : []
+            const message = JSON.parse(
+                rawMessage.toString()
             );
 
-            return;
-        }
-
-        /* =====================
-           Attack
-        ===================== */
-
-        if (message.type === "attack") {
-
-            attack(
-                player,
-                Number(message.target),
-                message.weapon,
-                message.direction
-            );
-
-            return;
-        }
-
-        /* =====================
-           Movement
-        ===================== */
-
-        if (message.type === "move") {
-
-            moveShip(
-                player,
-                Number(message.shipId),
-                message.direction
-            );
-
-            return;
+            handleMessage(player, message);
+        } catch (error) {
+            send(ws, {
+                type: "error",
+                message: "البيانات المرسلة غير صحيحة"
+            });
         }
     });
 
     ws.on("close", () => {
-
+        handleLeaveRoom(player);
         connections.delete(ws);
+    });
 
-        leaveRoom(player);
-
-        broadcastOnlineCount();
+    ws.on("error", () => {
+        handleLeaveRoom(player);
+        connections.delete(ws);
     });
 });
 
-/* =========================
-   Setup timeout
-========================= */
-
-setInterval(() => {
-
-    for (const room of rooms.values()) {
-
-        if (
-            room.battleStarted ||
-            room.players.length !== 2 ||
-            !room.setupStartTime
-        ) {
-            continue;
-        }
-
-        const elapsed =
-            Math.floor(
-                (Date.now() -
-                    room.setupStartTime) /
-                1000
-            );
-
-        for (const player of room.players) {
-            sendSetupState(player);
-        }
-
-        if (elapsed >= 60) {
-
-            for (const player of room.players) {
-
-                if (!allShipsPlaced(player)) {
-                    randomCompletePlayer(player);
-                }
-            }
-
-            beginBattle(room);
-        }
-    }
-
-}, 1000);
-
-server.listen(PORT, () => {
-
-    console.log(
-        `Battleship server running on port ${PORT}`
-    );
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
 });
