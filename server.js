@@ -56,15 +56,49 @@ const server = http.createServer((req,res)=>{
         return;
     }
 
-    res.writeHead(
-        404,
-        {
-            "Content-Type":
-                "text/plain; charset=utf-8"
+// إرسال صورة الخلفية
+if (req.url === "/sea.png") {
+
+    const filePath =
+        path.join(__dirname, "sea.png");
+
+    fs.readFile(
+        filePath,
+        (err, data) => {
+
+            if (err) {
+
+                res.writeHead(404, {
+                    "Content-Type":
+                        "text/plain; charset=utf-8"
+                });
+
+                res.end("Image Not Found");
+
+                return;
+            }
+
+            res.writeHead(200, {
+                "Content-Type": "image/png"
+            });
+
+            res.end(data);
         }
     );
 
-    res.end("Not Found");
+    return;
+}
+
+// أي ملف غير موجود
+res.writeHead(
+    404,
+    {
+        "Content-Type":
+            "text/plain; charset=utf-8"
+    }
+);
+
+res.end("Not Found");
 });
 
 const wss =
