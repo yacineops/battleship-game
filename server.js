@@ -1,17 +1,53 @@
+
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
 const WebSocket = require("ws");
 
 const PORT = process.env.PORT || 8080;
 const BOARD_SIZE = 10;
 const BOARD_CELLS = BOARD_SIZE * BOARD_SIZE;
 
+// ===============================
+// HTTP SERVER - عرض اللعبة
+// ===============================
+
 const server = http.createServer((req, res) => {
-    res.writeHead(200, {
+    if (req.url === "/" || req.url === "/index.html") {
+        const filePath = path.join(__dirname, "index.html");
+
+        fs.readFile(filePath, (err, data) => {
+            if (err) {
+                console.error("Error loading index.html:", err);
+
+                res.writeHead(500, {
+                    "Content-Type": "text/plain; charset=utf-8"
+                });
+
+                res.end("خطأ في تحميل اللعبة");
+                return;
+            }
+
+            res.writeHead(200, {
+                "Content-Type": "text/html; charset=utf-8"
+            });
+
+            res.end(data);
+        });
+
+        return;
+    }
+
+    res.writeHead(404, {
         "Content-Type": "text/plain; charset=utf-8"
     });
 
-    res.end("معركة السفن - WebSocket Server يعمل");
+    res.end("Not Found");
 });
+
+// ===============================
+// WEBSOCKET
+// ===============================
 
 const wss = new WebSocket.Server({ server });
 
@@ -20,6 +56,10 @@ const connections = new Set();
 
 let nextPlayerId = 1;
 let nextRoomId = 1;
+
+// ===============================
+// HELPERS
+// ===============================
 
 function send(ws, data) {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -76,6 +116,7 @@ function createRoom(roomName, owner) {
 
 function getRoom(player) {
     if (!player || !player.roomId) return null;
+
     return rooms.get(player.roomId) || null;
 }
 
@@ -112,6 +153,10 @@ function sendRoomInfo(room) {
         });
     }
 }
+
+// ===============================
+// GRID
+// ===============================
 
 function normalizeGrid(grid) {
     const result = createEmptyGrid();
@@ -163,6 +208,10 @@ function resetPlayerBattleData(player) {
     player.attackedCells = new Set();
 }
 
+// ===============================
+// START BATTLE
+// ===============================
+
 function startBattle(room) {
     if (!room || room.players.length !== 2) return;
     if (room.started) return;
@@ -185,6 +234,10 @@ function startBattle(room) {
     }
 }
 
+// ===============================
+// CONNECT
+// ===============================
+
 function handleConnect(player, message) {
     if (message.playerName || message.name) {
         player.name = String(
@@ -199,12 +252,17 @@ function handleConnect(player, message) {
     });
 }
 
+// ===============================
+// CREATE ROOM
+// ===============================
+
 function handleCreateRoom(player, message) {
     if (player.roomId) {
         send(player.ws, {
             type: "error",
             message: "أنت داخل غرفة بالفعل"
         });
+
         return;
     }
 
@@ -230,12 +288,17 @@ function handleCreateRoom(player, message) {
     sendRoomInfo(room);
 }
 
+// ===============================
+// JOIN ROOM
+// ===============================
+
 function handleJoinRoom(player, message) {
     if (player.roomId) {
         send(player.ws, {
             type: "error",
             message: "أنت داخل غرفة بالفعل"
         });
+
         return;
     }
 
@@ -250,6 +313,7 @@ function handleJoinRoom(player, message) {
             type: "error",
             message: "أدخل رمز الغرفة"
         });
+
         return;
     }
 
@@ -260,6 +324,7 @@ function handleJoinRoom(player, message) {
             type: "error",
             message: "الغرفة غير موجودة"
         });
+
         return;
     }
 
@@ -268,6 +333,7 @@ function handleJoinRoom(player, message) {
             type: "error",
             message: "الغرفة ممتلئة"
         });
+
         return;
     }
 
@@ -298,6 +364,10 @@ function handleJoinRoom(player, message) {
     sendRoomInfo(room);
 }
 
+// ===============================
+// READY
+// ===============================
+
 function handleReady(player) {
     const room = getRoom(player);
 
@@ -306,6 +376,7 @@ function handleReady(player) {
             type: "error",
             message: "لست داخل غرفة"
         });
+
         return;
     }
 
@@ -320,6 +391,10 @@ function handleReady(player) {
     sendRoomInfo(room);
 }
 
+// ===============================
+// BATTLE READY
+// ===============================
+
 function handleBattleReady(player, message) {
     const room = getRoom(player);
 
@@ -328,6 +403,7 @@ function handleBattleReady(player, message) {
             type: "error",
             message: "لست داخل غرفة"
         });
+
         return;
     }
 
@@ -336,6 +412,7 @@ function handleBattleReady(player, message) {
             type: "error",
             message: "انتظر دخول لاعب آخر"
         });
+
         return;
     }
 
@@ -359,6 +436,10 @@ function handleBattleReady(player, message) {
     }
 }
 
+// ===============================
+// ATTACK
+// ===============================
+
 function handleAttack(player, message) {
     const room = getRoom(player);
 
@@ -367,6 +448,7 @@ function handleAttack(player, message) {
             type: "error",
             message: "المعركة لم تبدأ بعد"
         });
+
         return;
     }
 
@@ -375,6 +457,7 @@ function handleAttack(player, message) {
             type: "error",
             message: "ليس دورك"
         });
+
         return;
     }
 
@@ -385,6 +468,7 @@ function handleAttack(player, message) {
             type: "error",
             message: "لا يوجد خصم"
         });
+
         return;
     }
 
@@ -403,6 +487,7 @@ function handleAttack(player, message) {
             type: "error",
             message: "موقع الهجوم غير صحيح"
         });
+
         return;
     }
 
@@ -413,6 +498,7 @@ function handleAttack(player, message) {
             type: "error",
             message: "لقد هاجمت هذه الخانة من قبل"
         });
+
         return;
     }
 
@@ -442,7 +528,10 @@ function handleAttack(player, message) {
         shipCell => player.attackedCells.has(shipCell)
     );
 
-    if (opponent.shipCells.size > 0 && allShipsDestroyed) {
+    if (
+        opponent.shipCells.size > 0 &&
+        allShipsDestroyed
+    ) {
         room.started = false;
         room.winnerId = player.id;
 
@@ -465,6 +554,10 @@ function handleAttack(player, message) {
         currentPlayerId: room.currentPlayerId
     });
 }
+
+// ===============================
+// LEAVE ROOM
+// ===============================
 
 function handleLeaveRoom(player) {
     const room = getRoom(player);
@@ -502,6 +595,10 @@ function handleLeaveRoom(player) {
 
     sendRoomInfo(room);
 }
+
+// ===============================
+// HANDLE MESSAGE
+// ===============================
 
 function handleMessage(player, message) {
     if (!message || typeof message !== "object") {
@@ -556,12 +653,14 @@ function handleMessage(player, message) {
                         players: room.players.length
                     }))
             });
+
             break;
 
         case "ping":
             send(player.ws, {
                 type: "pong"
             });
+
             break;
 
         default:
@@ -571,6 +670,10 @@ function handleMessage(player, message) {
             });
     }
 }
+
+// ===============================
+// WEBSOCKET CONNECTION
+// ===============================
 
 wss.on("connection", ws => {
     const player = createPlayer(ws);
@@ -609,6 +712,10 @@ wss.on("connection", ws => {
         connections.delete(ws);
     });
 });
+
+// ===============================
+// START SERVER
+// ===============================
 
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
