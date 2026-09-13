@@ -20,9 +20,7 @@ body{
     text-align:center
 }
 
-button,input{
-    font:inherit
-}
+button,input{font:inherit}
 
 button{
     border:0;
@@ -35,30 +33,12 @@ button{
     font-weight:bold
 }
 
-button:hover{
-    background:#1684d4
-}
-
-button:active{
-    transform:scale(.96)
-}
-
-button:disabled{
-    opacity:.55;
-    cursor:not-allowed
-}
-
-button.back{
-    background:#6b2935
-}
-
-button.success{
-    background:#16834a
-}
-
-button.warning{
-    background:#9a6b16
-}
+button:hover{background:#1684d4}
+button:active{transform:scale(.96)}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.back{background:#6b2935}
+button.success{background:#16834a}
+button.warning{background:#9a6b16}
 
 .screen{
     display:none;
@@ -69,9 +49,7 @@ button.warning{
     flex-direction:column
 }
 
-.screen.active{
-    display:flex
-}
+.screen.active{display:flex}
 
 .panel{
     width:100%;
@@ -82,13 +60,8 @@ button.warning{
     box-shadow:0 0 25px #0008
 }
 
-h1{
-    color:#38bdf8
-}
-
-h2{
-    color:#7dd3fc
-}
+h1{color:#38bdf8}
+h2{color:#7dd3fc}
 
 .menu-buttons{
     display:flex;
@@ -119,10 +92,6 @@ input{
     color:#facc15
 }
 
-/* =========================
-   MAIN MENU
-========================= */
-
 .online-count{
     width:100%;
     padding:11px;
@@ -134,9 +103,7 @@ input{
     border:1px solid #28516d
 }
 
-/* =========================
-   GAME
-========================= */
+/* GAME */
 
 .game-screen-content{
     width:100%;
@@ -168,15 +135,6 @@ input{
     margin:8px
 }
 
-.turn-box{
-    font-size:20px;
-    font-weight:bold;
-    padding:12px;
-    border-radius:14px;
-    background:#12364e;
-    margin:10px 0
-}
-
 .map-title{
     margin:7px 0 10px;
     color:#7dd3fc
@@ -203,7 +161,7 @@ input{
 
 .cell{
     border:1px solid #174b68;
-    background:#0b344f;
+    background:#16834a;
     position:relative;
     transition:
         background .15s,
@@ -213,84 +171,74 @@ input{
 }
 
 /* =========================
-   SHIPS - TOP VIEW
+   SHIPS TOP VIEW
 ========================= */
 
 .cell.ship{
     background:
         linear-gradient(
             90deg,
-            #182631 0%,
-            #526b7b 15%,
-            #7891a0 45%,
-            #526b7b 80%,
-            #182631 100%
+            #111b22 0%,
+            #344b59 12%,
+            #8299a6 42%,
+            #536b79 70%,
+            #17242c 100%
         );
     box-shadow:
-        inset 0 0 5px #a9bdc8,
-        inset 0 -4px 5px #101820
+        inset 0 0 5px #c1d0d7,
+        inset 0 -4px 5px #0b1116
 }
 
 .cell.ship::before{
     content:"";
     position:absolute;
-    left:18%;
-    right:18%;
+    left:12%;
+    right:12%;
     top:4%;
     bottom:4%;
     border-radius:48% 48% 35% 35%;
     background:
         linear-gradient(
             90deg,
-            #263b49,
-            #a4b7c1 45%,
-            #516b79
+            #263a46,
+            #a9bac2 43%,
+            #536b78 75%,
+            #263943
         );
     box-shadow:
-        inset 2px 0 3px #c8d6dc,
-        inset -2px 0 3px #16232c
+        inset 2px 0 3px #d4e0e5,
+        inset -2px 0 3px #142029
 }
 
 .cell.ship::after{
     content:"";
     position:absolute;
-    left:42%;
-    right:42%;
-    top:18%;
-    bottom:18%;
-    background:#20333f;
-    border-radius:3px
+    left:43%;
+    right:43%;
+    top:15%;
+    bottom:15%;
+    background:#1c303b;
+    border-radius:4px
 }
 
-/* Different ship sizes */
-
 .cell.ship.ship4::before{
-    background:
-        linear-gradient(
-            90deg,
-            #243947,
-            #9eb3bd 42%,
-            #5b7380
-        )
+    left:6%;
+    right:6%
 }
 
 .cell.ship.ship3::before{
-    left:20%;
-    right:20%;
-    border-radius:45% 45% 30% 30%
+    left:9%;
+    right:9%
 }
 
 .cell.ship.ship2::before{
-    left:24%;
-    right:24%;
-    border-radius:40% 40% 25% 25%
+    left:16%;
+    right:16%
 }
 
-/* Horizontal ship cells */
-
 .cell.ship.horizontal::before{
-    top:18%;
-    bottom:18%;
+    top:15%;
+    bottom:15%;
     left:4%;
     right:4%;
     border-radius:45% 45% 35% 35%
@@ -299,27 +247,36 @@ input{
 .cell.ship.horizontal::after{
     top:42%;
     bottom:42%;
-    left:18%;
-    right:18%
+    left:14%;
+    right:14%
 }
 
 .cell.ship.horizontal.ship4::before{
-    left:3%;
-    right:3%
+    left:2%;
+    right:2%
 }
 
 .cell.ship.horizontal.ship2::before{
-    left:7%;
-    right:7%
+    left:5%;
+    right:5%
 }
 
 /* =========================
-   HIT / MISS
+   ATTACK COLORS
 ========================= */
 
+/* إصابة */
 .cell.hit{
-    background:#991b1b;
-    animation:hit .35s
+    background:#b91c1c !important;
+    animation:hit .35s;
+    box-shadow:
+        inset 0 0 0 2px #ef4444,
+        0 0 8px #ef444466
+}
+
+/* إصابة فوق السفينة */
+.cell.ship.hit{
+    background:#b91c1c !important;
 }
 
 .cell.hit::after{
@@ -331,22 +288,71 @@ input{
     inset:0;
     display:flex;
     align-items:center;
-    justify-content:center
+    justify-content:center;
+    z-index:10;
+    text-shadow:0 1px 3px #000
 }
 
+/* استهداف بدون إصابة */
 .cell.miss{
-    background:#cbd5e1
+    background:#eab308 !important;
+    box-shadow:
+        inset 0 0 0 2px #facc15,
+        0 0 7px #facc1555
 }
 
 .cell.miss::after{
     content:"•";
-    color:#111827;
-    font-size:25px;
+    color:#fff;
+    font-size:28px;
+    font-weight:bold;
     position:absolute;
     inset:0;
     display:flex;
     align-items:center;
-    justify-content:center
+    justify-content:center;
+    z-index:10
+}
+
+/* هجوم اللاعب على الخصم */
+.cell.target-hit{
+    background:#b91c1c !important;
+    box-shadow:
+        inset 0 0 0 2px #ef4444,
+        0 0 8px #ef444455
+}
+
+.cell.target-hit::after{
+    content:"✕";
+    color:white;
+    font-size:20px;
+    font-weight:bold;
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:12
+}
+
+.cell.target-miss{
+    background:#eab308 !important;
+    box-shadow:
+        inset 0 0 0 2px #facc15,
+        0 0 7px #facc1555
+}
+
+.cell.target-miss::after{
+    content:"•";
+    color:white;
+    font-size:28px;
+    font-weight:bold;
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:12
 }
 
 /* =========================
@@ -358,19 +364,19 @@ input{
 }
 
 .cell.attackable:hover{
-    background:#155579;
+    background:#20a65a;
     transform:scale(.94);
     z-index:2
 }
 
 .cell.selected-target{
-    background:#e09f12 !important;
-    border:2px solid #fff !important;
+    background:#d89408 !important;
+    border:2px solid white !important;
     box-shadow:
-        0 0 8px #facc15,
+        0 0 10px #facc15,
         inset 0 0 8px #fff8;
     transform:scale(.94);
-    z-index:5;
+    z-index:20;
     animation:selectedPulse .8s infinite alternate
 }
 
@@ -380,7 +386,7 @@ input{
     inset:18%;
     border:2px solid white;
     border-radius:50%;
-    z-index:5;
+    z-index:20;
     background:transparent
 }
 
@@ -394,16 +400,16 @@ input{
     display:flex;
     align-items:center;
     justify-content:center;
-    z-index:6
+    z-index:21
 }
 
-.cell.bomb-area{
+.cell.bomb-preview{
     outline:2px solid #facc15;
-    z-index:3
+    z-index:15
 }
 
 /* =========================
-   PREPARATION
+   CONTROLS
 ========================= */
 
 .placement-controls{
@@ -411,13 +417,7 @@ input{
     width:100%
 }
 
-.placement-controls button{
-    margin:4px
-}
-
-/* =========================
-   WEAPONS / BOTTOM CONTROL
-========================= */
+.placement-controls button{margin:4px}
 
 .battle-controls{
     width:100%;
@@ -447,9 +447,7 @@ input{
     transition:.15s
 }
 
-.weapon:active{
-    transform:scale(.96)
-}
+.weapon:active{transform:scale(.96)}
 
 .weapon.selected{
     border-color:#facc15;
@@ -462,10 +460,6 @@ input{
     display:block;
     color:#b8d7e8;
     margin-top:4px
-}
-
-.weapon.unlimited small{
-    color:#86efac
 }
 
 .fire-button{
@@ -491,13 +485,9 @@ input{
     margin-top:6px
 }
 
-/* =========================
-   ROOMS
-========================= */
+/* ROOMS */
 
-.room-list{
-    margin-top:15px
-}
+.room-list{margin-top:15px}
 
 .room-item{
     display:flex;
@@ -520,9 +510,7 @@ input{
     margin:10px
 }
 
-/* =========================
-   EFFECTS
-========================= */
+/* EFFECTS */
 
 @keyframes hit{
     0%{transform:scale(.7)}
@@ -539,31 +527,18 @@ input{
     }
 }
 
-@keyframes shake{
-    0%,100%{transform:translateX(0)}
-    25%{transform:translateX(-6px)}
-    75%{transform:translateX(6px)}
-}
-
 @keyframes fireFlash{
     0%{box-shadow:0 0 0 #facc15}
     50%{box-shadow:0 0 25px #facc15}
     100%{box-shadow:0 0 0 #facc15}
 }
 
-.flash-fire{
-    animation:fireFlash .4s
-}
+.flash-fire{animation:fireFlash .4s}
 
-.shake{
-    animation:shake .3s
-}
-
-/* =========================
-   MOBILE
-========================= */
+/* MOBILE */
 
 @media(max-width:420px){
+
     .screen{
         padding:15px 10px
     }
@@ -590,10 +565,6 @@ input{
 
 <body>
 
-<!-- =========================
-     MAIN
-========================= -->
-
 <section id="startScreen" class="screen active">
 <div class="panel">
 
@@ -618,13 +589,8 @@ input{
 </button>
 
 </div>
-
 </div>
 </section>
-
-<!-- =========================
-     ONLINE
-========================= -->
 
 <section id="onlineScreen" class="screen">
 <div class="panel">
@@ -649,13 +615,8 @@ onclick="cancelOnlineSearch();backToMain()">
 </button>
 
 </div>
-
 </div>
 </section>
-
-<!-- =========================
-     FRIEND
-========================= -->
 
 <section id="friendScreen" class="screen">
 <div class="panel">
@@ -683,10 +644,6 @@ onclick="cancelOnlineSearch();backToMain()">
 </div>
 </section>
 
-<!-- =========================
-     CREATE ROOM
-========================= -->
-
 <section id="createRoomScreen" class="screen">
 <div class="panel">
 
@@ -713,10 +670,6 @@ maxlength="30">
 
 </div>
 </section>
-
-<!-- =========================
-     JOIN ROOM
-========================= -->
 
 <section id="joinRoomScreen" class="screen">
 <div class="panel">
@@ -748,10 +701,6 @@ maxlength="30">
 </div>
 </section>
 
-<!-- =========================
-     LOBBY
-========================= -->
-
 <section id="lobbyScreen" class="screen">
 <div class="panel">
 
@@ -781,13 +730,8 @@ onclick="leaveRoom()">
 </button>
 
 </div>
-
 </div>
 </section>
-
-<!-- =========================
-     SETTINGS
-========================= -->
 
 <section id="settingsScreen" class="screen">
 <div class="panel">
@@ -818,10 +762,6 @@ placeholder="اكتب اسمك">
 </div>
 </section>
 
-<!-- =========================
-     GAME
-========================= -->
-
 <section id="gameScreen" class="screen">
 
 <div class="game-screen-content">
@@ -848,9 +788,7 @@ placeholder="اكتب اسمك">
 
 <div class="board-container">
 
-<h2 class="map-title">
-🗺️ خريطة
-</h2>
+<h2 class="map-title">🗺️ خريطة</h2>
 
 <div id="myBoard" class="board"></div>
 
@@ -871,9 +809,8 @@ onclick="sendReadyForBattle()">
 
 </div>
 
-<!-- BATTLE CONTROLS -->
-
-<div id="battleControls"
+<div
+id="battleControls"
 class="battle-controls"
 style="display:none">
 
@@ -911,38 +848,25 @@ onclick="selectWeapon('bomb')">
 class="success fire-button"
 id="fireButton"
 onclick="fireSelectedWeapon()">
-
 🔥 إطلاق
-
 </button>
 
-<div
-class="bottom-turn"
-id="bottomTurn">
+<div class="bottom-turn" id="bottomTurn">
 ⏳ ---
 </div>
 
-<div
-class="bottom-instruction"
-id="gameStatus">
+<div class="bottom-instruction" id="gameStatus">
 ---
 </div>
 
 </div>
 
-<button
-class="back"
-onclick="leaveGame()">
+<button class="back" onclick="leaveGame()">
 🚪 خروج
 </button>
 
 </div>
-
 </section>
-
-<!-- =========================
-     RESULT
-========================= -->
 
 <section id="resultScreen" class="screen">
 
@@ -957,33 +881,26 @@ onclick="leaveGame()">
 </button>
 
 </div>
-
 </section>
 
 <script>
 "use strict";
 
-/* =========================
-   CONNECTION
-========================= */
-
 const SERVER_URL =
-    location.protocol === "https:"
-        ? "wss://" + location.host
-        : "ws://" + location.host;
+    location.protocol==="https:"
+        ? "wss://"+location.host
+        : "ws://"+location.host;
 
 let socket=null;
 
 let currentRoom=null;
 let playerId=null;
-
 let playerName=
     localStorage.getItem("playerName")||"لاعب";
 
 let isReady=false;
 let isBattleReady=false;
 let isMyTurn=false;
-
 let gamePhase="none";
 
 let selectedWeapon="normal";
@@ -1004,14 +921,16 @@ let currentShips=[
     {size:2,cells:[]}
 ];
 
+/*
+   الأماكن التي هاجمها اللاعب على الخصم.
+   هذه العلامات تظهر على نفس خريطة اللاعب.
+*/
+let attackMarks=createEmptyGrid();
+
 let weapons={
     normal:Infinity,
     bomb:2
 };
-
-/* =========================
-   GRID
-========================= */
 
 function createEmptyGrid(){
     return Array.from(
@@ -1020,14 +939,13 @@ function createEmptyGrid(){
     );
 }
 
-/* =========================
-   UI
-========================= */
-
 function showScreen(id){
+
     document
         .querySelectorAll(".screen")
-        .forEach(s=>s.classList.remove("active"));
+        .forEach(
+            s=>s.classList.remove("active")
+        );
 
     document
         .getElementById(id)
@@ -1035,30 +953,30 @@ function showScreen(id){
 }
 
 function setStatus(id,text){
-    const e=document.getElementById(id);
 
-    if(e){
-        e.textContent=text||"";
-    }
+    const e=
+        document.getElementById(id);
+
+    if(e)e.textContent=text||"";
 }
 
 function updateOnlineCount(count){
-    const e=document.getElementById("onlineCount");
+
+    const e=
+        document.getElementById("onlineCount");
 
     if(e){
-        e.textContent=Number(count)||0;
+        e.textContent=
+            Number(count)||0;
     }
 }
-
-/* =========================
-   NAVIGATION
-========================= */
 
 function backToMain(){
 
     cancelOnlineSearch();
 
     if(currentRoom){
+
         sendMessage({
             type:"leaveRoom",
             roomId:currentRoom
@@ -1078,6 +996,7 @@ function backToMain(){
 }
 
 function openOnlineScreen(){
+
     showScreen("onlineScreen");
 
     setStatus(
@@ -1132,10 +1051,6 @@ function showJoinRoom(){
     requestRoomList();
 }
 
-/* =========================
-   SETTINGS
-========================= */
-
 function saveSettings(){
 
     const name=
@@ -1145,10 +1060,12 @@ function saveSettings(){
             .trim();
 
     if(!name){
+
         setStatus(
             "settingsStatus",
             "اكتب اسم اللاعب أولاً"
         );
+
         return;
     }
 
@@ -1165,39 +1082,41 @@ function saveSettings(){
     );
 }
 
-/* =========================
-   WEBSOCKET
-========================= */
+/* CONNECTION */
 
 function connectToServer(callback){
 
     if(
-        socket &&
-        socket.readyState===WebSocket.OPEN
+        socket?.readyState===
+        WebSocket.OPEN
     ){
+
         callback?.();
         return;
     }
 
     if(
-        socket &&
-        socket.readyState===WebSocket.CONNECTING
+        socket?.readyState===
+        WebSocket.CONNECTING
     ){
 
         const timer=setInterval(()=>{
 
             if(
-                socket &&
-                socket.readyState===WebSocket.OPEN
+                socket?.readyState===
+                WebSocket.OPEN
             ){
+
                 clearInterval(timer);
                 callback?.();
             }
 
             if(
-                !socket ||
-                socket.readyState===WebSocket.CLOSED
+                !socket||
+                socket.readyState===
+                WebSocket.CLOSED
             ){
+
                 clearInterval(timer);
             }
 
@@ -1208,12 +1127,12 @@ function connectToServer(callback){
 
     try{
 
-        socket=new WebSocket(SERVER_URL);
+        socket=
+            new WebSocket(SERVER_URL);
 
     }catch(e){
 
         showConnectionError();
-
         return;
     }
 
@@ -1239,7 +1158,6 @@ function connectToServer(callback){
     socket.onclose=()=>{
 
         socket=null;
-
         isSearchingOnline=false;
     };
 }
@@ -1247,11 +1165,14 @@ function connectToServer(callback){
 function ensureConnection(callback){
 
     if(
-        socket &&
-        socket.readyState===WebSocket.OPEN
+        socket?.readyState===
+        WebSocket.OPEN
     ){
+
         callback();
+
     }else{
+
         connectToServer(callback);
     }
 }
@@ -1259,9 +1180,10 @@ function ensureConnection(callback){
 function sendMessage(data){
 
     if(
-        !socket ||
+        !socket||
         socket.readyState!==WebSocket.OPEN
     ){
+
         return false;
     }
 
@@ -1288,17 +1210,15 @@ function showConnectionError(){
         "joinStatus",
         "lobbyStatus",
         "gameStatus"
-    ].forEach(id=>{
-        setStatus(
+    ].forEach(
+        id=>setStatus(
             id,
             "❌ تعذر الاتصال بالسيرفر"
-        );
-    });
+        )
+    );
 }
 
-/* =========================
-   ONLINE MATCH
-========================= */
+/* ONLINE */
 
 function startOnlineSearch(){
 
@@ -1312,7 +1232,6 @@ function startOnlineSearch(){
         );
 
     button.disabled=true;
-
     button.textContent=
         "🔎 جاري البحث...";
 
@@ -1328,7 +1247,6 @@ function startOnlineSearch(){
             playerName,
             name:playerName
         });
-
     });
 }
 
@@ -1351,15 +1269,12 @@ function cancelOnlineSearch(){
     if(button){
 
         button.disabled=false;
-
         button.textContent=
             "🔎 البحث عن لاعب";
     }
 }
 
-/* =========================
-   ROOMS
-========================= */
+/* ROOMS */
 
 function createRoom(){
 
@@ -1392,7 +1307,6 @@ function createRoom(){
             playerName,
             name:playerName
         });
-
     });
 }
 
@@ -1427,24 +1341,19 @@ function joinRoom(){
             playerName,
             name:playerName
         });
-
     });
 }
 
 function requestRoomList(){
 
     ensureConnection(()=>{
-
         sendMessage({
             type:"roomList"
         });
-
     });
 }
 
-/* =========================
-   READY
-========================= */
+/* READY */
 
 function readyUp(){
 
@@ -1468,7 +1377,6 @@ function readyUp(){
         );
 
     button.disabled=true;
-
     button.textContent=
         "✅ تم التجهيز";
 
@@ -1493,9 +1401,7 @@ function resetReadyButton(){
     if(button){
 
         button.disabled=false;
-
-        button.textContent=
-            "✅ جاهز";
+        button.textContent="✅ جاهز";
     }
 }
 
@@ -1524,13 +1430,10 @@ function leaveRoom(){
 }
 
 function leaveGame(){
-
     leaveRoom();
 }
 
-/* =========================
-   SERVER MESSAGES
-========================= */
+/* SERVER */
 
 function handleServerMessage(raw){
 
@@ -1559,7 +1462,10 @@ function handleServerMessage(raw){
                 data.id||
                 playerId;
 
-            if(data.onlineCount!==undefined){
+            if(
+                data.onlineCount!==undefined
+            ){
+
                 updateOnlineCount(
                     data.onlineCount
                 );
@@ -1689,7 +1595,9 @@ function handleServerMessage(raw){
 
         case "playerBattleReady":
 
-            if(data.playerId===playerId){
+            if(
+                data.playerId===playerId
+            ){
 
                 setStatus(
                     "prepStatus",
@@ -1715,10 +1623,10 @@ function handleServerMessage(raw){
         case "turnChanged":
 
             isMyTurn=
-                data.currentPlayerId===playerId;
+                data.currentPlayerId===
+                playerId;
 
             updateTurnUI();
-
             renderBoard();
 
             break;
@@ -1726,12 +1634,6 @@ function handleServerMessage(raw){
         case "attackResult":
 
             applyAttackResult(data);
-
-            break;
-
-        case "reward":
-
-            showReward(data);
 
             break;
 
@@ -1786,10 +1688,6 @@ function handleServerMessage(raw){
     }
 }
 
-/* =========================
-   ERROR
-========================= */
-
 function showErrorMessage(message){
 
     [
@@ -1797,23 +1695,23 @@ function showErrorMessage(message){
         "friendStatus",
         "createStatus",
         "joinStatus",
-        "lobbyStatus",
-        "gameStatus"
-    ].forEach(id=>{
-        setStatus(id,message);
-    });
-}
+        "lobbyStatus"
+    ].forEach(
+        id=>setStatus(id,message)
+    );
 
-/* =========================
-   ROOM LIST
-========================= */
+    /*
+       أثناء اللعب لا نريد رسائل إضافية.
+    */
+    if(gamePhase!=="battle"){
+        setStatus("gameStatus",message);
+    }
+}
 
 function renderRooms(rooms){
 
     const list=
-        document.getElementById(
-            "roomList"
-        );
+        document.getElementById("roomList");
 
     list.innerHTML="";
 
@@ -1857,14 +1755,11 @@ function renderRooms(rooms){
         };
 
         item.append(name,button);
-
         list.appendChild(item);
     });
 }
 
-/* =========================
-   PREPARATION
-========================= */
+/* PREPARATION */
 
 function startPreparation(data){
 
@@ -1873,10 +1768,10 @@ function startPreparation(data){
         currentRoom;
 
     gamePhase="preparation";
-
     isBattleReady=false;
-
     selectedTarget=null;
+
+    attackMarks=createEmptyGrid();
 
     myGrid=
         Array.isArray(data.grid)
@@ -1925,7 +1820,6 @@ function startPreparation(data){
         );
 
     button.disabled=false;
-
     button.textContent=
         "✅ تأكيد الترتيب";
 
@@ -1958,19 +1852,11 @@ function startPrepTimer(seconds){
             document
                 .getElementById("prepTimer")
                 .textContent=
-                Math.max(
-                    0,
-                    prepSeconds
-                );
+                Math.max(0,prepSeconds);
 
             if(prepSeconds<=0){
 
                 stopPrepTimer();
-
-                setStatus(
-                    "prepStatus",
-                    "⏱️ انتهى الوقت، سيتم بدء المعركة..."
-                );
             }
 
         },1000);
@@ -1985,9 +1871,7 @@ function stopPrepTimer(){
     prepTimerInterval=null;
 }
 
-/* =========================
-   RANDOM SHIPS
-========================= */
+/* RANDOM SHIPS */
 
 function randomizeShips(sendUpdate=true){
 
@@ -2015,14 +1899,10 @@ function randomizeShips(sendUpdate=true){
                 Math.random()>.5;
 
             const row=
-                Math.floor(
-                    Math.random()*10
-                );
+                Math.floor(Math.random()*10);
 
             const col=
-                Math.floor(
-                    Math.random()*10
-                );
+                Math.floor(Math.random()*10);
 
             const cells=[];
 
@@ -2043,10 +1923,11 @@ function randomizeShips(sendUpdate=true){
                         : col;
 
                 if(
-                    r>=10 ||
-                    c>=10 ||
+                    r>=10||
+                    c>=10||
                     myGrid[r][c]!==""
                 ){
+
                     cells.length=0;
                     break;
                 }
@@ -2061,14 +1942,12 @@ function randomizeShips(sendUpdate=true){
                 });
 
                 ship.cells=cells;
-
                 placed=true;
             }
         }
     });
 
     renderBoard();
-
     playSound("select");
 
     if(sendUpdate){
@@ -2086,10 +1965,6 @@ function hasValidLocalFleet(){
         0
     )===14;
 }
-
-/* =========================
-   SEND FLEET
-========================= */
 
 function sendBattleGridUpdate(){
 
@@ -2145,7 +2020,6 @@ function sendReadyForBattle(){
         );
 
     button.disabled=true;
-
     button.textContent=
         "⏳ تم التأكيد";
 
@@ -2172,19 +2046,18 @@ function sendReadyForBattle(){
     );
 }
 
-/* =========================
-   BATTLE START
-========================= */
+/* BATTLE */
 
 function startBattle(data){
 
     stopPrepTimer();
 
     gamePhase="battle";
-
     isBattleReady=true;
 
     selectedTarget=null;
+
+    attackMarks=createEmptyGrid();
 
     isMyTurn=
         data.currentPlayerId===playerId;
@@ -2210,28 +2083,18 @@ function startBattle(data){
         .getElementById("bombAmmo")
         .textContent="2";
 
-    selectWeapon(
-        "normal",
-        false
-    );
+    selectWeapon("normal",false);
 
     updateTurnUI();
-
     renderBoard();
 
     playSound("battleStart");
 }
 
-/* =========================
-   TURN UI
-========================= */
-
 function updateTurnUI(){
 
     const turn=
-        document.getElementById(
-            "bottomTurn"
-        );
+        document.getElementById("bottomTurn");
 
     if(!turn)return;
 
@@ -2240,16 +2103,14 @@ function updateTurnUI(){
         turn.textContent=
             "🎯 الدور: دورك";
 
-        turn.style.color=
-            "#86efac";
+        turn.style.color="#86efac";
 
     }else{
 
         turn.textContent=
             "⏳ الدور: عند الخصم";
 
-        turn.style.color=
-            "#facc15";
+        turn.style.color="#facc15";
     }
 
     setStatus(
@@ -2262,9 +2123,7 @@ function updateTurnUI(){
     );
 }
 
-/* =========================
-   WEAPON
-========================= */
+/* WEAPONS */
 
 function selectWeapon(
     weapon,
@@ -2274,7 +2133,7 @@ function selectWeapon(
     if(gamePhase!=="battle")return;
 
     if(
-        weapon==="bomb" &&
+        weapon==="bomb"&&
         weapons.bomb<=0
     ){
 
@@ -2305,25 +2164,6 @@ function selectWeapon(
     if(playEffect){
 
         playSound("weapon");
-
-        const element=
-            weapon==="normal"
-                ? document.getElementById(
-                    "normalWeapon"
-                )
-                : document.getElementById(
-                    "bombWeapon"
-                );
-
-        element.classList.remove(
-            "flash-fire"
-        );
-
-        void element.offsetWidth;
-
-        element.classList.add(
-            "flash-fire"
-        );
     }
 
     if(isMyTurn){
@@ -2337,9 +2177,7 @@ function selectWeapon(
     }
 }
 
-/* =========================
-   TARGET
-========================= */
+/* TARGET */
 
 function fireSelectedWeapon(){
 
@@ -2348,37 +2186,18 @@ function fireSelectedWeapon(){
         !isMyTurn
     ){
 
-        setStatus(
-            "gameStatus",
-            "⏳ ليس دورك الآن"
-        );
-
-        playSound("error");
-
         return;
     }
 
     if(selectedTarget===null){
 
-        setStatus(
-            "gameStatus",
-            "⚠️ اختر خانة أولاً"
-        );
-
-        playSound("error");
-
         return;
     }
 
     if(
-        selectedWeapon==="bomb" &&
+        selectedWeapon==="bomb"&&
         weapons.bomb<=0
     ){
-
-        setStatus(
-            "gameStatus",
-            "❌ لا توجد قنابل متبقية"
-        );
 
         return;
     }
@@ -2386,9 +2205,7 @@ function fireSelectedWeapon(){
     playSound("fire");
 
     const board=
-        document.getElementById(
-            "myBoard"
-        );
+        document.getElementById("myBoard");
 
     board.classList.remove("flash-fire");
 
@@ -2412,11 +2229,6 @@ function fireSelectedWeapon(){
     selectedTarget=null;
 
     renderBoard();
-
-    setStatus(
-        "gameStatus",
-        "🔥 تم الإطلاق..."
-    );
 }
 
 function selectTarget(row,col){
@@ -2425,23 +2237,14 @@ function selectTarget(row,col){
         gamePhase!=="battle"||
         !isMyTurn
     ){
-        return;
-    }
-
-    if(
-        myGrid[row][col]==="hit"||
-        myGrid[row][col]==="miss"
-    ){
-
-        setStatus(
-            "gameStatus",
-            "❌ تم استهداف هذه الخانة من قبل"
-        );
-
-        playSound("error");
 
         return;
     }
+
+    /*
+       لا يوجد منع للخانة السابقة.
+       يمكن اختيارها وإطلاق النار عليها مرة أخرى.
+    */
 
     selectedTarget={
         row,
@@ -2451,18 +2254,9 @@ function selectTarget(row,col){
     playSound("select");
 
     renderBoard();
-
-    setStatus(
-        "gameStatus",
-        selectedWeapon==="bomb"
-            ? "💣 تم اختيار مركز القنبلة، اضغط إطلاق"
-            : "🎯 تم اختيار الخانة، اضغط إطلاق"
-    );
 }
 
-/* =========================
-   RENDER BOARD
-========================= */
+/* SHIPS */
 
 function getShipForCell(row,col){
 
@@ -2470,7 +2264,7 @@ function getShipForCell(row,col){
         ship=>
             ship.cells.some(
                 c=>
-                    Number(c[0])===row &&
+                    Number(c[0])===row&&
                     Number(c[1])===col
             )
     );
@@ -2478,7 +2272,11 @@ function getShipForCell(row,col){
 
 function getShipOrientation(ship){
 
-    if(!ship||ship.cells.length<2){
+    if(
+        !ship||
+        ship.cells.length<2
+    ){
+
         return "vertical";
     }
 
@@ -2486,6 +2284,31 @@ function getShipOrientation(ship){
            Number(ship.cells[1][0])
         ? "horizontal"
         : "vertical";
+}
+
+/* BOARD */
+
+function isBombPreviewCell(
+    row,
+    col
+){
+
+    if(
+        !selectedTarget||
+        selectedWeapon!=="bomb"
+    ){
+
+        return false;
+    }
+
+    return (
+        Math.abs(
+            row-selectedTarget.row
+        )<=1 &&
+        Math.abs(
+            col-selectedTarget.col
+        )<=1
+    );
 }
 
 function renderBoard(){
@@ -2499,71 +2322,107 @@ function renderBoard(){
 
     board.innerHTML="";
 
-    for(
-        let row=0;
-        row<10;
-        row++
-    ){
+    for(let row=0;row<10;row++){
 
-        for(
-            let col=0;
-            col<10;
-            col++
-        ){
+        for(let col=0;col<10;col++){
 
             const cell=
                 document.createElement("div");
 
             cell.className="cell";
 
-            if(
-                myGrid[row][col]==="ship"
-            ){
+            const shipIndex=
+                getShipForCell(
+                    row,
+                    col
+                );
+
+            /*
+               السفينة تبقى ظاهرة حتى إذا
+               أصيبت.
+            */
+            if(shipIndex>=0){
 
                 cell.classList.add("ship");
 
-                const shipIndex=
-                    getShipForCell(
-                        row,
-                        col
-                    );
+                const ship=
+                    currentShips[shipIndex];
 
-                if(shipIndex>=0){
+                cell.classList.add(
+                    "ship"+ship.size
+                );
 
-                    const ship=
-                        currentShips[
-                            shipIndex
-                        ];
-
-                    cell.classList.add(
-                        "ship"+ship.size
-                    );
-
-                    cell.classList.add(
-                        getShipOrientation(
-                            ship
-                        )
-                    );
-                }
+                cell.classList.add(
+                    getShipOrientation(ship)
+                );
             }
 
+            /*
+               إصابات الخصم على سفني.
+            */
             if(
                 myGrid[row][col]==="hit"
             ){
-                cell.classList.add("hit");
-            }
 
-            if(
+                cell.classList.add("hit");
+
+            }else if(
                 myGrid[row][col]==="miss"
             ){
+
                 cell.classList.add("miss");
             }
 
+            /*
+               أماكن هجماتي على الخصم.
+               تظهر في نفس الخريطة.
+            */
             if(
-                gamePhase==="battle" &&
-                isMyTurn &&
-                myGrid[row][col]!=="hit" &&
-                myGrid[row][col]!=="miss"
+                attackMarks[row][col]==="hit"
+            ){
+
+                cell.classList.add(
+                    "target-hit"
+                );
+
+            }else if(
+                attackMarks[row][col]==="miss"
+            ){
+
+                cell.classList.add(
+                    "target-miss"
+                );
+            }
+
+            /*
+               تحديد الخانة الحالية.
+            */
+            if(
+                selectedTarget&&
+                selectedTarget.row===row&&
+                selectedTarget.col===col
+            ){
+
+                cell.classList.add(
+                    "selected-target"
+                );
+            }
+
+            /*
+               معاينة القنبلة 3×3.
+            */
+            if(
+                isBombPreviewCell(row,col)
+            ){
+
+                cell.classList.add(
+                    "bomb-preview"
+                );
+            }
+
+            if(
+                gamePhase==="battle"&&
+                isMyTurn
             ){
 
                 cell.classList.add(
@@ -2578,25 +2437,12 @@ function renderBoard(){
                 };
             }
 
-            if(
-                selectedTarget &&
-                selectedTarget.row===row &&
-                selectedTarget.col===col
-            ){
-
-                cell.classList.add(
-                    "selected-target"
-                );
-            }
-
             board.appendChild(cell);
         }
     }
 }
 
-/* =========================
-   ATTACK RESULT
-========================= */
+/* ATTACK RESULT */
 
 function applyAttackResult(data){
 
@@ -2604,48 +2450,67 @@ function applyAttackResult(data){
         data.attackerId===playerId
     ){
 
-        if(
-            data.weapon==="bomb" &&
-            weapons.bomb>0
-        ){
-
-            weapons.bomb--;
-
-            document
-                .getElementById(
-                    "bombAmmo"
-                )
-                .textContent=
-                weapons.bomb;
-        }
-
-        if(data.hit){
-
-            playSound("hit");
-
-        }else{
-
-            playSound("miss");
-        }
-
-    }else{
-
+        /*
+           سجل هجوم اللاعب على نفس الخريطة.
+        */
         if(
             Array.isArray(data.cells)
         ){
 
             data.cells.forEach(c=>{
 
-                const r=
-                    Number(c.row);
-
-                const col=
-                    Number(c.col);
+                const r=Number(c.row);
+                const col=Number(c.col);
 
                 if(
-                    r>=0 &&
-                    r<10 &&
-                    col>=0 &&
+                    r>=0&&
+                    r<10&&
+                    col>=0&&
+                    col<10
+                ){
+
+                    attackMarks[r][col]=
+                        c.hit
+                            ? "hit"
+                            : "miss";
+                }
+            });
+        }
+
+        if(
+            data.weapon==="bomb"
+        ){
+
+            weapons.bomb=
+                Math.max(
+                    0,
+                    weapons.bomb-1
+                );
+
+            document
+                .getElementById("bombAmmo")
+                .textContent=
+                weapons.bomb;
+        }
+
+    }else{
+
+        /*
+           هجوم الخصم على خريطة اللاعب.
+        */
+        if(
+            Array.isArray(data.cells)
+        ){
+
+            data.cells.forEach(c=>{
+
+                const r=Number(c.row);
+                const col=Number(c.col);
+
+                if(
+                    r>=0&&
+                    r<10&&
+                    col>=0&&
                     col<10
                 ){
 
@@ -2656,67 +2521,72 @@ function applyAttackResult(data){
                 }
             });
         }
-
-        if(data.hit){
-
-            playSound("hit");
-
-        }else{
-
-            playSound("miss");
-        }
     }
 
+    /*
+       الدور ينتقل دائمًا بعد كل هجوم.
+    */
     isMyTurn=
         data.nextPlayerId===playerId;
 
-    updateTurnUI();
-
-    renderBoard();
-}
-
-/* =========================
-   REWARD
-========================= */
-
-function showReward(data){
-
-    if(
-        data.reward==="bomb"
-    ){
-
-        weapons.bomb++;
-
-        document
-            .getElementById(
-                "bombAmmo"
-            )
-            .textContent=
-            weapons.bomb;
+    if(data.sunk){
 
         setStatus(
             "gameStatus",
-            "🚢 تم إغراق سفينة " +
-            data.shipSize+
-            " خانات! 💣 حصلت على قنبلة إضافية"
+            "🚢 تم إغراق سفينة!"
         );
+
+        playSound("sink");
+
+    }else if(data.hit){
+
+        setStatus(
+            "gameStatus",
+            "💥 إصابة!"
+        );
+
+        playSound("hit");
 
     }else{
 
         setStatus(
             "gameStatus",
-            "🚢 تم إغراق سفينة " +
-            data.shipSize+
-            " خانات!"
+            "💨 لا توجد إصابة"
         );
+
+        playSound("miss");
     }
 
-    playSound("sink");
+    updateTurnOnly();
+    renderBoard();
 }
 
-/* =========================
-   SOUND ENGINE
-========================= */
+function updateTurnOnly(){
+
+    const turn=
+        document.getElementById(
+            "bottomTurn"
+        );
+
+    if(!turn)return;
+
+    if(isMyTurn){
+
+        turn.textContent=
+            "🎯 الدور: دورك";
+
+        turn.style.color="#86efac";
+
+    }else{
+
+        turn.textContent=
+            "⏳ الدور: عند الخصم";
+
+        turn.style.color="#facc15";
+    }
+}
+
+/* SOUND */
 
 let audioContext=null;
 
@@ -2726,11 +2596,10 @@ function getAudioContext(){
         window.AudioContext||
         window.webkitAudioContext;
 
-    if(!AudioContext){
-        return null;
-    }
+    if(!AudioContext)return null;
 
     if(!audioContext){
+
         audioContext=
             new AudioContext();
     }
@@ -2738,6 +2607,7 @@ function getAudioContext(){
     if(
         audioContext.state==="suspended"
     ){
+
         audioContext.resume();
     }
 
@@ -2763,10 +2633,7 @@ function playSound(type){
             ctx.createGain();
 
         osc.connect(gain);
-
-        gain.connect(
-            ctx.destination
-        );
+        gain.connect(ctx.destination);
 
         let startFreq=300;
         let endFreq=180;
@@ -2776,102 +2643,73 @@ function playSound(type){
         switch(type){
 
             case "select":
-
                 startFreq=520;
                 endFreq=650;
                 duration=.08;
                 volume=.035;
-
                 break;
 
             case "weapon":
-
                 startFreq=280;
                 endFreq=520;
                 duration=.11;
                 volume=.045;
-
                 break;
 
             case "confirm":
-
                 startFreq=420;
                 endFreq=680;
                 duration=.16;
                 volume=.045;
-
                 break;
 
             case "fire":
-
                 startFreq=150;
                 endFreq=55;
                 duration=.28;
                 volume=.07;
-
                 break;
 
             case "hit":
-
                 startFreq=230;
                 endFreq=80;
                 duration=.25;
                 volume=.065;
-
                 break;
 
             case "miss":
-
                 startFreq=320;
                 endFreq=170;
                 duration=.18;
                 volume=.035;
-
                 break;
 
             case "sink":
-
                 startFreq=180;
                 endFreq=45;
                 duration=.55;
                 volume=.07;
-
                 break;
 
             case "battleStart":
-
                 startFreq=380;
                 endFreq=700;
                 duration=.25;
                 volume=.045;
-
                 break;
 
             case "win":
-
                 startFreq=500;
                 endFreq=900;
                 duration=.55;
                 volume=.06;
-
                 break;
 
             case "lose":
-
                 startFreq=220;
                 endFreq=70;
                 duration=.55;
                 volume=.055;
-
-                break;
-
-            case "error":
-
-                startFreq=180;
-                endFreq=100;
-                duration=.12;
-                volume=.035;
-
                 break;
         }
 
@@ -2907,29 +2745,11 @@ function playSound(type){
         );
 
         osc.start(now);
-
-        osc.stop(
-            now+duration+.02
-        );
+        osc.stop(now+duration+.02);
 
     }catch(e){}
 }
 
-/* =========================
-   INITIAL
-========================= */
-
-document
-    .getElementById("onlineCountButton")
-    .addEventListener(
-        "click",
-        ()=>{}
-    );
-
-/*
-   الاتصال عند فتح اللعبة حتى يظهر
-   عداد المتصلين مباشرة.
-*/
 ensureConnection();
 
 </script>
