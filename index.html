@@ -52,6 +52,10 @@ button.success {
     background: #16834a;
 }
 
+button.warning {
+    background: #9a6b16;
+}
+
 .screen {
     display: none;
     min-height: 100vh;
@@ -204,9 +208,17 @@ input {
         <h1>⚓ معركة السفن ⚓</h1>
 
         <div class="menu-buttons">
-            <button type="button" onclick="openOnlineScreen()">🎮 لعب أونلاين</button>
-            <button type="button" onclick="openFriendScreen()">🎮 لعب مع صديق</button>
-            <button type="button" onclick="openSettingsScreen()">⚙️ الإعدادات</button>
+            <button type="button" onclick="openOnlineScreen()">
+                🎮 لعب أونلاين
+            </button>
+
+            <button type="button" onclick="openFriendScreen()">
+                🎮 لعب مع صديق
+            </button>
+
+            <button type="button" onclick="openSettingsScreen()">
+                ⚙️ الإعدادات
+            </button>
         </div>
     </div>
 </section>
@@ -215,12 +227,28 @@ input {
     <div class="panel">
         <h2>🎮 لعب أونلاين</h2>
 
-        <div class="menu-buttons">
-            <button type="button" onclick="connectToServer()">🔗 اتصال</button>
-            <button type="button" class="back" onclick="backToMain()">🏠 عودة</button>
+        <div class="status" id="onlineStatus">
+            اضغط للبحث عن لاعب
         </div>
 
-        <div id="onlineStatus" class="status"></div>
+        <div class="menu-buttons">
+            <button
+                type="button"
+                class="success"
+                id="onlineSearchButton"
+                onclick="startOnlineSearch()"
+            >
+                🔎 البحث عن لاعب
+            </button>
+
+            <button
+                type="button"
+                class="back"
+                onclick="cancelOnlineSearch()"
+            >
+                🏠 عودة
+            </button>
+        </div>
     </div>
 </section>
 
@@ -229,9 +257,17 @@ input {
         <h2>🎮 لعب مع صديق</h2>
 
         <div class="menu-buttons">
-            <button type="button" onclick="showCreateRoom()">🏠 إنشاء غرفة</button>
-            <button type="button" onclick="showJoinRoom()">🚪 دخول إلى غرفة</button>
-            <button type="button" class="back" onclick="backToMain()">🏠 عودة</button>
+            <button type="button" onclick="showCreateRoom()">
+                🏠 إنشاء غرفة
+            </button>
+
+            <button type="button" onclick="showJoinRoom()">
+                🚪 دخول إلى غرفة
+            </button>
+
+            <button type="button" class="back" onclick="backToMain()">
+                🏠 عودة
+            </button>
         </div>
 
         <div id="friendStatus" class="status"></div>
@@ -250,11 +286,19 @@ input {
         >
 
         <div class="menu-buttons">
-            <button type="button" class="success" onclick="createRoom()">
+            <button
+                type="button"
+                class="success"
+                onclick="createRoom()"
+            >
                 إنشاء الغرفة
             </button>
 
-            <button type="button" class="back" onclick="openFriendScreen()">
+            <button
+                type="button"
+                class="back"
+                onclick="openFriendScreen()"
+            >
                 🏠 عودة
             </button>
         </div>
@@ -275,11 +319,19 @@ input {
         >
 
         <div class="menu-buttons">
-            <button type="button" class="success" onclick="joinRoom()">
+            <button
+                type="button"
+                class="success"
+                onclick="joinRoom()"
+            >
                 دخول
             </button>
 
-            <button type="button" class="back" onclick="openFriendScreen()">
+            <button
+                type="button"
+                class="back"
+                onclick="openFriendScreen()"
+            >
                 🏠 عودة
             </button>
         </div>
@@ -301,11 +353,19 @@ input {
         </p>
 
         <div class="menu-buttons">
-            <button type="button" class="success" onclick="readyUp()">
+            <button
+                type="button"
+                class="success"
+                onclick="readyUp()"
+            >
                 ✅ جاهز
             </button>
 
-            <button type="button" class="back" onclick="leaveRoom()">
+            <button
+                type="button"
+                class="back"
+                onclick="leaveRoom()"
+            >
                 🚪 مغادرة الغرفة
             </button>
         </div>
@@ -326,11 +386,19 @@ input {
         >
 
         <div class="menu-buttons">
-            <button type="button" class="success" onclick="saveSettings()">
+            <button
+                type="button"
+                class="success"
+                onclick="saveSettings()"
+            >
                 💾 حفظ
             </button>
 
-            <button type="button" class="back" onclick="backToMain()">
+            <button
+                type="button"
+                class="back"
+                onclick="backToMain()"
+            >
                 🏠 عودة
             </button>
         </div>
@@ -358,15 +426,26 @@ input {
     </div>
 
     <div>
-        <button type="button" onclick="randomizeShips()">
+        <button
+            type="button"
+            onclick="randomizeShips()"
+        >
             🔀 ترتيب عشوائي
         </button>
 
-        <button type="button" class="success" onclick="sendReadyForBattle()">
+        <button
+            type="button"
+            class="success"
+            onclick="sendReadyForBattle()"
+        >
             ⚔️ بدء المعركة
         </button>
 
-        <button type="button" class="back" onclick="leaveGame()">
+        <button
+            type="button"
+            class="back"
+            onclick="leaveGame()"
+        >
             🚪 خروج
         </button>
     </div>
@@ -380,7 +459,10 @@ input {
 
         <div id="resultText"></div>
 
-        <button type="button" onclick="backToMain()">
+        <button
+            type="button"
+            onclick="backToMain()"
+        >
             🏠 القائمة الرئيسية
         </button>
     </div>
@@ -389,22 +471,21 @@ input {
 <script>
 "use strict";
 
-/*
-    يعمل تلقائيًا على Render:
-    HTTPS  -> WSS
-    HTTP   -> WS
-*/
 const SERVER_URL =
     location.protocol === "https:"
         ? "wss://" + location.host
         : "ws://" + location.host;
 
 let socket = null;
+
 let currentRoom = null;
 let playerId = null;
-let playerName = localStorage.getItem("playerName") || "لاعب";
+let playerName =
+    localStorage.getItem("playerName") || "لاعب";
+
 let isReady = false;
 let isMyTurn = false;
+let isSearchingOnline = false;
 
 let myGrid = createEmptyGrid();
 let enemyGrid = createEmptyGrid();
@@ -437,21 +518,35 @@ function showScreen(id) {
 }
 
 function backToMain() {
+    cancelOnlineSearch();
     showScreen("startScreen");
 }
 
 function openOnlineScreen() {
     showScreen("onlineScreen");
-    setStatus("onlineStatus", "");
+
+    if (isSearchingOnline) {
+        setStatus(
+            "onlineStatus",
+            "🔎 جاري البحث عن لاعب..."
+        );
+    } else {
+        setStatus(
+            "onlineStatus",
+            "اضغط للبحث عن لاعب"
+        );
+    }
 }
 
 function openFriendScreen() {
+    cancelOnlineSearch();
     showScreen("friendScreen");
     setStatus("friendStatus", "");
 }
 
 function openSettingsScreen() {
-    const input = document.getElementById("playerName");
+    const input =
+        document.getElementById("playerName");
 
     if (input) {
         input.value = playerName;
@@ -462,19 +557,28 @@ function openSettingsScreen() {
 }
 
 function showCreateRoom() {
+    cancelOnlineSearch();
+
     document.getElementById("createRoomName").value = "";
+
     setStatus("createStatus", "");
+
     showScreen("createRoomScreen");
 }
 
 function showJoinRoom() {
+    cancelOnlineSearch();
+
     document.getElementById("joinRoomId").value = "";
+
     setStatus("joinStatus", "");
+
     showScreen("joinRoomScreen");
 }
 
 function setStatus(id, text) {
-    const element = document.getElementById(id);
+    const element =
+        document.getElementById(id);
 
     if (element) {
         element.textContent = text || "";
@@ -482,49 +586,79 @@ function setStatus(id, text) {
 }
 
 function saveSettings() {
-    const input = document.getElementById("playerName");
+    const input =
+        document.getElementById("playerName");
+
     const name = input.value.trim();
 
     if (!name) {
-        setStatus("settingsStatus", "اكتب اسم اللاعب أولاً");
+        setStatus(
+            "settingsStatus",
+            "اكتب اسم اللاعب أولاً"
+        );
+
         return;
     }
 
     playerName = name;
-    localStorage.setItem("playerName", playerName);
 
-    setStatus("settingsStatus", "تم حفظ الاسم بنجاح");
+    localStorage.setItem(
+        "playerName",
+        playerName
+    );
+
+    setStatus(
+        "settingsStatus",
+        "تم حفظ الاسم بنجاح"
+    );
 }
 
-function connectToServer() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        setStatus("onlineStatus", "أنت متصل بالفعل");
+function connectToServer(callback) {
+    if (
+        socket &&
+        socket.readyState === WebSocket.OPEN
+    ) {
+        if (callback) callback();
         return;
     }
 
-    if (socket && socket.readyState === WebSocket.CONNECTING) {
-        setStatus("onlineStatus", "جاري الاتصال بالفعل...");
+    if (
+        socket &&
+        socket.readyState === WebSocket.CONNECTING
+    ) {
+        setTimeout(() => {
+            connectToServer(callback);
+        }, 300);
+
         return;
     }
-
-    setStatus("onlineStatus", "جاري الاتصال بالسيرفر...");
 
     try {
         socket = new WebSocket(SERVER_URL);
     } catch (error) {
-        setStatus("onlineStatus", "تعذر إنشاء الاتصال بالسيرفر");
-        socket = null;
+        setStatus(
+            "onlineStatus",
+            "تعذر الاتصال بالسيرفر"
+        );
+
+        setStatus(
+            "friendStatus",
+            "تعذر الاتصال بالسيرفر"
+        );
+
         return;
     }
 
     socket.onopen = function() {
-        setStatus("onlineStatus", "تم الاتصال بالسيرفر بنجاح");
-
         sendMessage({
             type: "connect",
             name: playerName,
             playerName: playerName
         });
+
+        if (callback) {
+            callback();
+        }
     };
 
     socket.onmessage = function(event) {
@@ -532,31 +666,45 @@ function connectToServer() {
     };
 
     socket.onerror = function() {
-        setStatus("onlineStatus", "حدث خطأ أثناء الاتصال");
-        setStatus("friendStatus", "حدث خطأ أثناء الاتصال بالسيرفر");
+        setStatus(
+            "onlineStatus",
+            "حدث خطأ أثناء الاتصال"
+        );
+
+        setStatus(
+            "friendStatus",
+            "حدث خطأ أثناء الاتصال بالسيرفر"
+        );
     };
 
     socket.onclose = function() {
         socket = null;
-        setStatus("onlineStatus", "تم قطع الاتصال بالسيرفر");
+        isSearchingOnline = false;
+
+        setStatus(
+            "onlineStatus",
+            "تم قطع الاتصال بالسيرفر"
+        );
     };
 }
 
-function ensureConnection() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        return true;
+function ensureConnection(callback) {
+    if (
+        socket &&
+        socket.readyState === WebSocket.OPEN
+    ) {
+        callback();
+        return;
     }
 
-    connectToServer();
-    setStatus("friendStatus", "جاري الاتصال بالسيرفر، حاول مرة أخرى بعد الاتصال");
-    return false;
+    connectToServer(callback);
 }
 
 function sendMessage(data) {
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-        setStatus("friendStatus", "اتصل بالسيرفر أولاً");
-        setStatus("createStatus", "اتصل بالسيرفر أولاً");
-        setStatus("joinStatus", "اتصل بالسيرفر أولاً");
+    if (
+        !socket ||
+        socket.readyState !== WebSocket.OPEN
+    ) {
         return false;
     }
 
@@ -564,56 +712,143 @@ function sendMessage(data) {
         socket.send(JSON.stringify(data));
         return true;
     } catch (error) {
-        setStatus("friendStatus", "تعذر إرسال الطلب");
         return false;
     }
 }
 
+/* =====================================
+   ONLINE MATCHMAKING
+===================================== */
+
+function startOnlineSearch() {
+    if (isSearchingOnline) {
+        return;
+    }
+
+    isSearchingOnline = true;
+
+    setStatus(
+        "onlineStatus",
+        "🔎 جاري البحث عن لاعب متصل..."
+    );
+
+    const button =
+        document.getElementById(
+            "onlineSearchButton"
+        );
+
+    if (button) {
+        button.textContent =
+            "🔎 جاري البحث...";
+        button.disabled = true;
+    }
+
+    ensureConnection(() => {
+        sendMessage({
+            type: "findMatch",
+            playerName: playerName,
+            name: playerName
+        });
+    });
+}
+
+function cancelOnlineSearch() {
+    if (!isSearchingOnline) {
+        return;
+    }
+
+    if (
+        socket &&
+        socket.readyState === WebSocket.OPEN
+    ) {
+        sendMessage({
+            type: "cancelMatch"
+        });
+    }
+
+    isSearchingOnline = false;
+
+    const button =
+        document.getElementById(
+            "onlineSearchButton"
+        );
+
+    if (button) {
+        button.textContent =
+            "🔎 البحث عن لاعب";
+
+        button.disabled = false;
+    }
+
+    setStatus(
+        "onlineStatus",
+        "اضغط للبحث عن لاعب"
+    );
+}
+
+/* =====================================
+   ROOMS
+===================================== */
+
 function createRoom() {
     const roomName =
-        document.getElementById("createRoomName").value.trim();
+        document
+            .getElementById("createRoomName")
+            .value
+            .trim();
 
     if (!roomName) {
-        setStatus("createStatus", "اكتب اسم الغرفة");
+        setStatus(
+            "createStatus",
+            "اكتب اسم الغرفة"
+        );
+
         return;
     }
 
-    if (!ensureConnection()) {
-        return;
-    }
-
-    sendMessage({
-        type: "createRoom",
-        roomName: roomName,
-        playerName: playerName,
-        name: playerName
+    ensureConnection(() => {
+        sendMessage({
+            type: "createRoom",
+            roomName,
+            playerName,
+            name: playerName
+        });
     });
 }
 
 function joinRoom() {
     const roomId =
-        document.getElementById("joinRoomId").value.trim();
+        document
+            .getElementById("joinRoomId")
+            .value
+            .trim();
 
     if (!roomId) {
-        setStatus("joinStatus", "اكتب رمز الغرفة");
+        setStatus(
+            "joinStatus",
+            "اكتب رمز الغرفة"
+        );
+
         return;
     }
 
-    if (!ensureConnection()) {
-        return;
-    }
-
-    sendMessage({
-        type: "joinRoom",
-        roomId: roomId,
-        playerName: playerName,
-        name: playerName
+    ensureConnection(() => {
+        sendMessage({
+            type: "joinRoom",
+            roomId,
+            playerName,
+            name: playerName
+        });
     });
 }
 
 function readyUp() {
     if (!currentRoom) {
-        setStatus("lobbyStatus", "لا توجد غرفة متصلة بها");
+        setStatus(
+            "lobbyStatus",
+            "لا توجد غرفة"
+        );
+
         return;
     }
 
@@ -640,12 +875,17 @@ function leaveRoom() {
 
     currentRoom = null;
     isReady = false;
+
     openFriendScreen();
 }
 
 function sendReadyForBattle() {
     if (!currentRoom) {
-        setStatus("gameStatus", "لا توجد غرفة");
+        setStatus(
+            "gameStatus",
+            "لا توجد غرفة"
+        );
+
         return;
     }
 
@@ -655,20 +895,28 @@ function sendReadyForBattle() {
         grid: myGrid
     });
 
-    setStatus("gameStatus", "تم إرسال ترتيب سفنك");
+    setStatus(
+        "gameStatus",
+        "تم إرسال ترتيب سفنك، في انتظار الخصم..."
+    );
 }
 
 function leaveGame() {
     leaveRoom();
 }
 
+/* =====================================
+   SERVER MESSAGES
+===================================== */
+
 function handleServerMessage(rawMessage) {
     let data;
 
     try {
-        data = typeof rawMessage === "string"
-            ? JSON.parse(rawMessage)
-            : rawMessage;
+        data =
+            typeof rawMessage === "string"
+                ? JSON.parse(rawMessage)
+                : rawMessage;
     } catch (error) {
         return;
     }
@@ -678,50 +926,114 @@ function handleServerMessage(rawMessage) {
     }
 
     switch (data.type) {
+
         case "connected":
-            playerId = data.playerId || data.id || null;
+            playerId =
+                data.playerId ||
+                data.id ||
+                null;
+            break;
+
+        case "searching":
+            isSearchingOnline = true;
+
+            setStatus(
+                "onlineStatus",
+                "🔎 جاري البحث عن لاعب..."
+            );
+
+            break;
+
+        case "matchFound":
+            isSearchingOnline = false;
+
+            currentRoom =
+                data.roomId ||
+                data.roomCode ||
+                null;
+
+            if (currentRoom) {
+                document.getElementById(
+                    "roomCode"
+                ).textContent =
+                    currentRoom;
+            }
+
+            setStatus(
+                "onlineStatus",
+                "🎉 تم العثور على لاعب!"
+            );
+
+            showScreen("lobbyScreen");
+
+            setStatus(
+                "lobbyStatus",
+                "🎉 تم العثور على الخصم، اضغط جاهز"
+            );
+
             break;
 
         case "roomCreated":
         case "roomJoined":
+
             currentRoom =
                 data.roomId ||
                 data.roomCode ||
                 data.id ||
                 null;
 
-            document.getElementById("roomCode").textContent =
+            document.getElementById(
+                "roomCode"
+            ).textContent =
                 currentRoom || "---";
 
             showScreen("lobbyScreen");
+
             break;
 
         case "roomInfo":
+
             currentRoom =
                 data.roomId ||
                 data.roomCode ||
                 currentRoom;
 
             if (currentRoom) {
-                document.getElementById("roomCode").textContent =
+                document.getElementById(
+                    "roomCode"
+                ).textContent =
                     currentRoom;
+            }
+
+            if (
+                data.players &&
+                data.players.length === 2
+            ) {
+                setStatus(
+                    "lobbyStatus",
+                    "اللاعبان داخل الغرفة"
+                );
             }
 
             break;
 
         case "playerJoined":
+
             setStatus(
                 "lobbyStatus",
                 "دخل اللاعب الآخر إلى الغرفة"
             );
+
             break;
 
         case "playerReady":
         case "playerBattleReady":
+
             setStatus(
                 "lobbyStatus",
                 "اللاعب الآخر جاهز"
             );
+
             break;
 
         case "startGame":
@@ -730,16 +1042,22 @@ function handleServerMessage(rawMessage) {
 
         case "turn":
         case "turnChanged": {
+
             const turnPlayerId =
                 data.playerId ||
                 data.currentPlayerId ||
                 data.nextPlayerId ||
                 null;
 
-            isMyTurn = turnPlayerId === playerId;
+            isMyTurn =
+                turnPlayerId === playerId;
 
-            document.getElementById("turnText").textContent =
-                isMyTurn ? "دورك" : "دور الخصم";
+            document.getElementById(
+                "turnText"
+            ).textContent =
+                isMyTurn
+                    ? "دورك"
+                    : "دور الخصم";
 
             break;
         }
@@ -749,20 +1067,42 @@ function handleServerMessage(rawMessage) {
             break;
 
         case "gameOver":
-            document.getElementById("resultText").textContent =
+
+            document.getElementById(
+                "resultText"
+            ).textContent =
                 data.winner === playerId
                     ? "🎉 فزت!"
                     : "💀 خسرت!";
 
             showScreen("resultScreen");
+
             break;
 
         case "roomList":
             renderRooms(data.rooms || []);
             break;
 
+        case "opponentLeft":
+
+            currentRoom = null;
+            isReady = false;
+
+            alert(
+                data.message ||
+                "غادر اللاعب الآخر الغرفة"
+            );
+
+            openFriendScreen();
+
+            break;
+
         case "error":
-            showErrorMessage(data.message || "حدث خطأ");
+            showErrorMessage(
+                data.message ||
+                "حدث خطأ"
+            );
+
             break;
 
         default:
@@ -780,19 +1120,27 @@ function showErrorMessage(message) {
 }
 
 function renderRooms(rooms) {
-    const list = document.getElementById("roomList");
+    const list =
+        document.getElementById("roomList");
+
     list.innerHTML = "";
 
     if (!rooms.length) {
-        list.textContent = "لا توجد غرف متاحة";
+        list.textContent =
+            "لا توجد غرف متاحة";
+
         return;
     }
 
     rooms.forEach(room => {
-        const item = document.createElement("div");
+        const item =
+            document.createElement("div");
+
         item.className = "room-item";
 
-        const name = document.createElement("span");
+        const name =
+            document.createElement("span");
+
         name.textContent =
             room.name ||
             room.roomName ||
@@ -800,30 +1148,48 @@ function renderRooms(rooms) {
             room.roomId ||
             "غرفة";
 
-        const button = document.createElement("button");
+        const button =
+            document.createElement("button");
+
         button.type = "button";
         button.textContent = "دخول";
         button.className = "success";
 
-        button.addEventListener("click", function() {
-            document.getElementById("joinRoomId").value =
-                room.id || room.roomId || "";
+        button.addEventListener(
+            "click",
+            function() {
 
-            joinRoom();
-        });
+                document.getElementById(
+                    "joinRoomId"
+                ).value =
+                    room.id ||
+                    room.roomId ||
+                    "";
+
+                joinRoom();
+            }
+        );
 
         item.appendChild(name);
         item.appendChild(button);
+
         list.appendChild(item);
     });
 }
 
-function startGame(data) {
-    myGrid = Array.isArray(data.grid)
-        ? data.grid
-        : myGrid;
+/* =====================================
+   GAME
+===================================== */
 
-    enemyGrid = createEmptyGrid();
+function startGame(data) {
+
+    myGrid =
+        Array.isArray(data.grid)
+            ? data.grid
+            : myGrid;
+
+    enemyGrid =
+        createEmptyGrid();
 
     const firstPlayer =
         data.firstPlayer ||
@@ -831,90 +1197,178 @@ function startGame(data) {
         data.playerId ||
         null;
 
-    isMyTurn = firstPlayer === playerId;
+    isMyTurn =
+        firstPlayer === playerId;
 
-    document.getElementById("myName").textContent = playerName;
+    document.getElementById(
+        "myName"
+    ).textContent =
+        playerName;
 
-    document.getElementById("turnText").textContent =
-        isMyTurn ? "دورك" : "دور الخصم";
+    document.getElementById(
+        "turnText"
+    ).textContent =
+        isMyTurn
+            ? "دورك"
+            : "دور الخصم";
 
     renderBoards();
+
     showScreen("gameScreen");
 }
 
 function renderBoards() {
-    const myBoard = document.getElementById("myBoard");
-    const enemyBoard = document.getElementById("enemyBoard");
+
+    const myBoard =
+        document.getElementById(
+            "myBoard"
+        );
+
+    const enemyBoard =
+        document.getElementById(
+            "enemyBoard"
+        );
 
     myBoard.innerHTML = "";
     enemyBoard.innerHTML = "";
 
-    for (let row = 0; row < 10; row++) {
-        for (let col = 0; col < 10; col++) {
-            const myCell = document.createElement("div");
-            myCell.className = "cell";
+    for (
+        let row = 0;
+        row < 10;
+        row++
+    ) {
 
-            if (myGrid[row][col] === "ship") {
-                myCell.classList.add("ship");
+        for (
+            let col = 0;
+            col < 10;
+            col++
+        ) {
+
+            const myCell =
+                document.createElement(
+                    "div"
+                );
+
+            myCell.className =
+                "cell";
+
+            if (
+                myGrid[row][col] ===
+                "ship"
+            ) {
+                myCell.classList.add(
+                    "ship"
+                );
             }
 
-            if (myGrid[row][col] === "hit") {
-                myCell.classList.add("hit");
+            if (
+                myGrid[row][col] ===
+                "hit"
+            ) {
+                myCell.classList.add(
+                    "hit"
+                );
             }
 
-            if (myGrid[row][col] === "miss") {
-                myCell.classList.add("miss");
+            if (
+                myGrid[row][col] ===
+                "miss"
+            ) {
+                myCell.classList.add(
+                    "miss"
+                );
             }
 
-            myBoard.appendChild(myCell);
+            myBoard.appendChild(
+                myCell
+            );
 
-            const enemyCell = document.createElement("div");
-            enemyCell.className = "cell";
+            const enemyCell =
+                document.createElement(
+                    "div"
+                );
 
-            if (enemyGrid[row][col] === "hit") {
-                enemyCell.classList.add("hit");
+            enemyCell.className =
+                "cell";
+
+            if (
+                enemyGrid[row][col] ===
+                "hit"
+            ) {
+                enemyCell.classList.add(
+                    "hit"
+                );
             }
 
-            if (enemyGrid[row][col] === "miss") {
-                enemyCell.classList.add("miss");
+            if (
+                enemyGrid[row][col] ===
+                "miss"
+            ) {
+                enemyCell.classList.add(
+                    "miss"
+                );
             }
 
-            enemyCell.addEventListener("click", function() {
-                attack(row, col);
-            });
+            enemyCell.addEventListener(
+                "click",
+                function() {
+                    attack(row, col);
+                }
+            );
 
-            enemyBoard.appendChild(enemyCell);
+            enemyBoard.appendChild(
+                enemyCell
+            );
         }
     }
 }
 
 function attack(row, col) {
+
     if (!isMyTurn) {
-        setStatus("gameStatus", "ليس دورك الآن");
+        setStatus(
+            "gameStatus",
+            "ليس دورك الآن"
+        );
+
         return;
     }
 
-    if (enemyGrid[row][col] !== "") {
-        setStatus("gameStatus", "هاجمت هذه الخانة من قبل");
+    if (
+        enemyGrid[row][col] !== ""
+    ) {
+        setStatus(
+            "gameStatus",
+            "هاجمت هذه الخانة من قبل"
+        );
+
         return;
     }
 
     if (!currentRoom) {
-        setStatus("gameStatus", "لا توجد غرفة");
+        setStatus(
+            "gameStatus",
+            "لا توجد غرفة"
+        );
+
         return;
     }
 
     sendMessage({
         type: "attack",
         roomId: currentRoom,
-        row: row,
-        col: col
+        row,
+        col
     });
 }
 
 function applyAttackResult(data) {
-    const row = Number(data.row);
-    const col = Number(data.col);
+
+    const row =
+        Number(data.row);
+
+    const col =
+        Number(data.col);
 
     if (
         !Number.isInteger(row) ||
@@ -932,10 +1386,21 @@ function applyAttackResult(data) {
         data.playerId ||
         null;
 
-    if (attackerId === playerId) {
-        enemyGrid[row][col] = data.hit ? "hit" : "miss";
+    if (
+        attackerId === playerId
+    ) {
+
+        enemyGrid[row][col] =
+            data.hit
+                ? "hit"
+                : "miss";
+
     } else {
-        myGrid[row][col] = data.hit ? "hit" : "miss";
+
+        myGrid[row][col] =
+            data.hit
+                ? "hit"
+                : "miss";
     }
 
     const nextPlayerId =
@@ -943,36 +1408,70 @@ function applyAttackResult(data) {
         data.currentPlayerId ||
         null;
 
-    isMyTurn = nextPlayerId === playerId;
+    isMyTurn =
+        nextPlayerId === playerId;
 
-    document.getElementById("turnText").textContent =
-        isMyTurn ? "دورك" : "دور الخصم";
+    document.getElementById(
+        "turnText"
+    ).textContent =
+        isMyTurn
+            ? "دورك"
+            : "دور الخصم";
 
     renderBoards();
 }
 
 function randomizeShips() {
-    myGrid = createEmptyGrid();
+
+    myGrid =
+        createEmptyGrid();
 
     ships.forEach(ship => {
         ship.cells = [];
     });
 
     ships.forEach(ship => {
+
         let placed = false;
         let attempts = 0;
 
-        while (!placed && attempts < 1000) {
+        while (
+            !placed &&
+            attempts < 1000
+        ) {
+
             attempts++;
 
-            const horizontal = Math.random() > 0.5;
-            const row = Math.floor(Math.random() * 10);
-            const col = Math.floor(Math.random() * 10);
+            const horizontal =
+                Math.random() > 0.5;
+
+            const row =
+                Math.floor(
+                    Math.random() * 10
+                );
+
+            const col =
+                Math.floor(
+                    Math.random() * 10
+                );
+
             const cells = [];
 
-            for (let i = 0; i < ship.size; i++) {
-                const r = horizontal ? row : row + i;
-                const c = horizontal ? col + i : col;
+            for (
+                let i = 0;
+                i < ship.size;
+                i++
+            ) {
+
+                const r =
+                    horizontal
+                        ? row
+                        : row + i;
+
+                const c =
+                    horizontal
+                        ? col + i
+                        : col;
 
                 if (
                     r < 0 ||
@@ -988,10 +1487,17 @@ function randomizeShips() {
                 cells.push([r, c]);
             }
 
-            if (cells.length === ship.size) {
-                cells.forEach(([r, c]) => {
-                    myGrid[r][c] = "ship";
-                });
+            if (
+                cells.length ===
+                ship.size
+            ) {
+
+                cells.forEach(
+                    ([r, c]) => {
+                        myGrid[r][c] =
+                            "ship";
+                    }
+                );
 
                 ship.cells = cells;
                 placed = true;
@@ -1003,6 +1509,7 @@ function randomizeShips() {
 }
 
 randomizeShips();
+
 </script>
 
 </body>
