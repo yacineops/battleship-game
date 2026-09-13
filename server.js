@@ -73,7 +73,6 @@ const wss =
     });
 
 const rooms = new Map();
-
 const matchmakingQueue = [];
 
 let nextPlayerId = 1;
@@ -177,6 +176,10 @@ function createPlayer(
 
         shipCells:new Map(),
 
+        /*
+           لا نمنع إعادة الاستهداف.
+           هذه المجموعة لم تعد تستخدم لمنع الهجوم.
+        */
         attackedCells:new Set(),
 
         weapons:{
@@ -503,9 +506,7 @@ function normalizeGrid(grid){
 
 function key(r,c){
 
-    return (
-        r*BOARD_SIZE+c
-    );
+    return r*BOARD_SIZE+c;
 }
 
 function validCell(r,c){
@@ -868,7 +869,6 @@ function generateRandomFleet(){
                     ){
 
                         cells.length=0;
-
                         break;
                     }
 
@@ -900,7 +900,6 @@ function generateRandomFleet(){
             if(!placed){
 
                 failed=true;
-
                 break;
             }
         }
@@ -989,7 +988,6 @@ function clearPreparationTimer(
     }
 
     if(room){
-
         room.preparationEndsAt=null;
     }
 }
@@ -1006,16 +1004,11 @@ function startBattlePreparation(
         return;
     }
 
-    clearPreparationTimer(
-        room
-    );
+    clearPreparationTimer(room);
 
     room.started=false;
-
     room.preparation=true;
-
     room.currentPlayerId=null;
-
     room.winnerId=null;
 
     room.players.forEach(
@@ -1053,13 +1046,9 @@ function startBattlePreparation(
                 player.ws,
                 {
                     type:"startGame",
-
                     phase:"preparation",
-
                     roomId:room.id,
-
                     grid:player.grid,
-
                     ships:
                         player.ships.map(
                             ship=>({
@@ -1067,10 +1056,8 @@ function startBattlePreparation(
                                 cells:ship.cells
                             })
                         ),
-
                     seconds:
                         PREPARATION_TIME,
-
                     playerId:
                         player.id
                 }
@@ -1104,14 +1091,8 @@ function startBattlePreparation(
                 remaining<=0
             ){
 
-                clearPreparationTimer(
-                    room
-                );
+                clearPreparationTimer(room);
 
-                /*
-                   أي لاعب لم يؤكد يتم
-                   قبول آخر ترتيب موجود لديه.
-                */
                 room.players.forEach(
                     player=>{
 
@@ -1251,10 +1232,7 @@ function handleBattleReady(
         )
     ){
 
-        clearPreparationTimer(
-            room
-        );
-
+        clearPreparationTimer(room);
         startBattle(room);
     }
 }
@@ -1274,14 +1252,10 @@ function startBattle(room){
         return;
     }
 
-    clearPreparationTimer(
-        room
-    );
+    clearPreparationTimer(room);
 
     room.preparation=false;
-
     room.started=true;
-
     room.winnerId=null;
 
     const firstPlayer=
@@ -1310,9 +1284,7 @@ function startBattle(room){
                 player.ws,
                 {
                     type:"battleStarted",
-
                     roomId:room.id,
-
                     currentPlayerId:
                         room.currentPlayerId
                 }
@@ -1324,7 +1296,6 @@ function startBattle(room){
         room,
         {
             type:"turnChanged",
-
             currentPlayerId:
                 room.currentPlayerId
         }
@@ -1341,9 +1312,7 @@ function getAttackCells(
     weapon
 ){
 
-    if(
-        weapon==="normal"
-    ){
+    if(weapon==="normal"){
 
         return [
             {
@@ -1353,9 +1322,7 @@ function getAttackCells(
         ];
     }
 
-    if(
-        weapon==="bomb"
-    ){
+    if(weapon==="bomb"){
 
         const cells=[];
 
@@ -1470,15 +1437,6 @@ function handleAttack(
         !validCell(row,col)
     ){
 
-        send(
-            player.ws,
-            {
-                type:"error",
-                message:
-                    "موقع الهجوم غير صحيح"
-            }
-        );
-
         return;
     }
 
@@ -1486,15 +1444,6 @@ function handleAttack(
         weapon==="bomb" &&
         player.weapons.bomb<=0
     ){
-
-        send(
-            player.ws,
-            {
-                type:"error",
-                message:
-                    "لا توجد قنابل متبقية"
-            }
-        );
 
         return;
     }
@@ -1507,33 +1456,9 @@ function handleAttack(
         );
 
     /*
-       لا يسمح باستعمال القنبلة
-       إذا كانت أي خانة في المنطقة
-       قد استهدفت سابقًا.
+       لا يوجد هنا أي فحص يمنع
+       إعادة استهداف نفس الخانة.
     */
-    if(
-        cells.some(
-            cell=>
-                player.attackedCells.has(
-                    key(
-                        cell.row,
-                        cell.col
-                    )
-                )
-        )
-    ){
-
-        send(
-            player.ws,
-            {
-                type:"error",
-                message:
-                    "منطقة الهجوم تحتوي على خانة تم استهدافها من قبل"
-            }
-        );
-
-        return;
-    }
 
     if(
         weapon==="bomb"
@@ -1559,8 +1484,6 @@ function handleAttack(
                 cell.col
             );
 
-        player.attackedCells.add(k);
-
         const shipId=
             opponent.shipCells.get(k);
 
@@ -1572,10 +1495,14 @@ function handleAttack(
             anyHit=true;
 
             const ship=
-                opponent.ships[
-                    shipId
-                ];
+                opponent.ships[shipId];
 
+            /*
+               إذا كانت الخانة قد أصيبت
+               سابقًا فلا نضيفها مرة أخرى
+               إلى hits، لكن الهجوم نفسه
+               يبقى إصابة.
+            */
             ship.hits.add(k);
 
             opponent.grid[
@@ -1589,9 +1516,7 @@ function handleAttack(
                 ship.cells.length
             ){
 
-                sunkShips.add(
-                    shipId
-                );
+                sunkShips.add(shipId);
             }
 
         }else{
@@ -1611,10 +1536,49 @@ function handleAttack(
     }
 
     /*
-       نفس نتيجة الهجوم تصل للاعبين:
-       المهاجم يعرف إصاباته،
-       والمدافع يعرف الخانات التي أصيب بها.
+       الدور ينتقل دائمًا بعد كل هجوم.
     */
+    const nextPlayerId=
+        opponent.id;
+
+    room.currentPlayerId=
+        opponent.id;
+
+    const sunk=
+        sunkShips.size>0;
+
+    /*
+       المكافآت.
+       4 أو 3 = قنبلة إضافية.
+       2 = بدون قنبلة.
+    */
+    let rewardBombs=0;
+
+    for(
+        const shipId of sunkShips
+    ){
+
+        const ship=
+            opponent.ships[shipId];
+
+        if(
+            ship.size===4||
+            ship.size===3
+        ){
+
+            player.weapons.bomb++;
+            rewardBombs++;
+        }
+    }
+
+    const allDestroyed=
+        opponent.ships.length===5 &&
+        opponent.ships.every(
+            ship=>
+                ship.hits.size===
+                ship.cells.length
+        );
+
     const attackResult={
 
         type:"attackResult",
@@ -1632,10 +1596,11 @@ function handleAttack(
 
         cells:results,
 
-        nextPlayerId:
-            anyHit
-                ? player.id
-                : opponent.id
+        sunk,
+
+        rewardBombs,
+
+        nextPlayerId
     };
 
     send(
@@ -1647,69 +1612,6 @@ function handleAttack(
         opponent.ws,
         attackResult
     );
-
-    /*
-       مكافأة:
-       سفينة 4 أو 3 = قنبلة إضافية.
-       سفينة 2 = لا توجد مكافأة.
-    */
-    for(
-        const shipId of sunkShips
-    ){
-
-        const ship=
-            opponent.ships[
-                shipId
-            ];
-
-        if(
-            ship.size===4||
-            ship.size===3
-        ){
-
-            player.weapons.bomb++;
-
-            send(
-                player.ws,
-                {
-                    type:"reward",
-
-                    reward:"bomb",
-
-                    shipSize:
-                        ship.size,
-
-                    message:
-                        `🚢 تم إغراق سفينة ${ship.size} خانات! حصلت على قنبلة إضافية 💣`
-                }
-            );
-
-        }else{
-
-            send(
-                player.ws,
-                {
-                    type:"reward",
-
-                    reward:null,
-
-                    shipSize:
-                        ship.size,
-
-                    message:
-                        `🚢 تم إغراق سفينة ${ship.size} خانات!`
-                }
-            );
-        }
-    }
-
-    const allDestroyed=
-        opponent.ships.length===5 &&
-        opponent.ships.every(
-            ship=>
-                ship.hits.size===
-                ship.cells.length
-        );
 
     if(allDestroyed){
 
@@ -1732,16 +1634,6 @@ function handleAttack(
         );
 
         return;
-    }
-
-    /*
-       الإصابة = يبقى الدور.
-       الخطأ = ينتقل الدور.
-    */
-    if(!anyHit){
-
-        room.currentPlayerId=
-            opponent.id;
     }
 
     broadcastRoom(
@@ -1767,8 +1659,8 @@ function sendRoomList(
         [...rooms.values()]
             .filter(
                 room=>
-                    room.players.length<2 &&
-                    !room.started &&
+                    room.players.length<2&&
+                    !room.started&&
                     !room.preparation
             )
             .map(
@@ -1798,9 +1690,7 @@ function handleCreateRoom(
     message
 ){
 
-    removeFromMatchmaking(
-        player
-    );
+    removeFromMatchmaking(player);
 
     if(player.roomId){
 
@@ -1839,15 +1729,9 @@ function handleCreateRoom(
         player.ws,
         {
             type:"roomCreated",
-
-            roomId:
-                room.id,
-
-            roomName:
-                room.name,
-
-            playerId:
-                player.id
+            roomId:room.id,
+            roomName:room.name,
+            playerId:player.id
         }
     );
 
@@ -1863,9 +1747,7 @@ function handleJoinRoom(
     message
 ){
 
-    removeFromMatchmaking(
-        player
-    );
+    removeFromMatchmaking(player);
 
     if(player.roomId){
 
@@ -1964,26 +1846,16 @@ function handleJoinRoom(
             ).slice(0,30);
     }
 
-    room.players.push(
-        player
-    );
-
-    player.roomId=
-        room.id;
+    room.players.push(player);
+    player.roomId=room.id;
 
     send(
         player.ws,
         {
             type:"roomJoined",
-
-            roomId:
-                room.id,
-
-            roomName:
-                room.name,
-
-            playerId:
-                player.id
+            roomId:room.id,
+            roomName:room.name,
+            playerId:player.id
         }
     );
 
@@ -1991,12 +1863,8 @@ function handleJoinRoom(
         room.players[0].ws,
         {
             type:"playerJoined",
-
-            playerId:
-                player.id,
-
-            playerName:
-                player.name
+            playerId:player.id,
+            playerName:player.name
         }
     );
 
@@ -2058,12 +1926,8 @@ function handleReady(
         room,
         {
             type:"playerReady",
-
-            playerId:
-                player.id,
-
-            playerName:
-                player.name
+            playerId:player.id,
+            playerName:player.name
         }
     );
 
@@ -2075,9 +1939,7 @@ function handleReady(
         )
     ){
 
-        startBattlePreparation(
-            room
-        );
+        startBattlePreparation(room);
     }
 }
 
@@ -2085,12 +1947,9 @@ function handleReady(
    RESET
 ========================= */
 
-function resetPlayer(
-    player
-){
+function resetPlayer(player){
 
     player.ready=false;
-
     player.battleReady=false;
 
     player.grid=
@@ -2118,9 +1977,7 @@ function handleLeaveRoom(
     player
 ){
 
-    removeFromMatchmaking(
-        player
-    );
+    removeFromMatchmaking(player);
 
     const room=
         getRoom(player);
@@ -2128,13 +1985,10 @@ function handleLeaveRoom(
     if(!room){
 
         player.roomId=null;
-
         return;
     }
 
-    clearPreparationTimer(
-        room
-    );
+    clearPreparationTimer(room);
 
     room.players=
         room.players.filter(
@@ -2149,10 +2003,7 @@ function handleLeaveRoom(
         room.players.length===0
     ){
 
-        rooms.delete(
-            room.id
-        );
-
+        rooms.delete(room.id);
         return;
     }
 
@@ -2163,16 +2014,11 @@ function handleLeaveRoom(
         room.id;
 
     room.started=false;
-
     room.preparation=false;
-
     room.currentPlayerId=null;
-
     room.winnerId=null;
 
-    resetPlayer(
-        remaining
-    );
+    resetPlayer(remaining);
 
     send(
         remaining.ws,
@@ -2203,14 +2049,10 @@ function handleMessage(
         return;
     }
 
-    switch(
-        message.type
-    ){
+    switch(message.type){
 
         case "connect":
-
         case "join":
-
         case "setName":
 
             if(
@@ -2229,13 +2071,8 @@ function handleMessage(
                 player.ws,
                 {
                     type:"connected",
-
-                    playerId:
-                        player.id,
-
-                    playerName:
-                        player.name,
-
+                    playerId:player.id,
+                    playerName:player.name,
                     onlineCount:
                         getOnlineCount()
                 }
@@ -2263,9 +2100,7 @@ function handleMessage(
 
         case "cancelMatch":
 
-            removeFromMatchmaking(
-                player
-            );
+            removeFromMatchmaking(player);
 
             send(
                 player.ws,
@@ -2335,9 +2170,7 @@ function handleMessage(
 
         case "leaveRoom":
 
-            handleLeaveRoom(
-                player
-            );
+            handleLeaveRoom(player);
 
             break;
 
@@ -2376,20 +2209,20 @@ wss.on(
         const player=
             createPlayer(ws);
 
-        ws.player=
-            player;
+        ws.player=player;
+
+        /*
+           حتى لا يتم احتساب disconnect
+           مرتين بسبب error ثم close.
+        */
+        ws.disconnected=false;
 
         send(
             ws,
             {
                 type:"connected",
-
-                playerId:
-                    player.id,
-
-                playerName:
-                    player.name,
-
+                playerId:player.id,
+                playerName:player.name,
                 onlineCount:
                     getOnlineCount()
             }
@@ -2427,29 +2260,19 @@ wss.on(
             }
         );
 
-        ws.on(
-            "close",
-            ()=>{
+        function disconnect(){
 
-                handleLeaveRoom(
-                    player
-                );
+            if(ws.disconnected)return;
 
-                broadcastOnlineCount();
-            }
-        );
+            ws.disconnected=true;
 
-        ws.on(
-            "error",
-            ()=>{
+            handleLeaveRoom(player);
 
-                handleLeaveRoom(
-                    player
-                );
+            broadcastOnlineCount();
+        }
 
-                broadcastOnlineCount();
-            }
-        );
+        ws.on("close",disconnect);
+        ws.on("error",disconnect);
     }
 );
 
