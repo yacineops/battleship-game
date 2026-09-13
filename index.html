@@ -2,1988 +2,890 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>معركة السفن</title>
 
 <style>
-* {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;background:#07131d;color:white;font-family:Arial,sans-serif;text-align:center}
+button,input{font:inherit}
+button{border:0;border-radius:12px;padding:13px 20px;margin:6px;color:white;background:#1266a8;cursor:pointer;font-weight:bold}
+button:hover{background:#1684d4}
+button:active{transform:scale(.96)}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.back{background:#6b2935}
+button.success{background:#16834a}
+button.warning{background:#9a6b16}
+.screen{display:none;min-height:100vh;padding:25px 15px;align-items:center;justify-content:center;flex-direction:column}
+.screen.active{display:flex}
+.panel{width:100%;max-width:430px;padding:25px;border-radius:20px;background:#0d2233;box-shadow:0 0 25px #0008}
+h1{color:#38bdf8}
+h2{color:#7dd3fc}
+.menu-buttons{display:flex;flex-direction:column;gap:8px}
+.menu-buttons button{width:100%;margin:0}
+input{width:100%;padding:13px;margin:8px 0;border:1px solid #28516d;border-radius:10px;background:#07131d;color:white;text-align:center;outline:none}
+.status{min-height:25px;margin:12px 0;color:#facc15}
 
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: #07131d;
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
-}
+.game-top{width:100%;max-width:430px}
+.turn-box{font-size:22px;font-weight:bold;padding:12px;border-radius:14px;background:#12364e;margin:10px 0}
+.timer{font-size:28px;font-weight:bold;color:#facc15;margin:10px}
+.boards{width:100%;max-width:500px;display:flex;justify-content:center}
+.board-container{display:flex;flex-direction:column;align-items:center;width:100%}
+.board{display:grid;grid-template-columns:repeat(10,1fr);width:min(94vw,420px);aspect-ratio:1;border:2px solid #2384bd;background:#0a2b43}
+.cell{border:1px solid #174b68;background:#0b344f;position:relative}
+.cell.ship{background:linear-gradient(145deg,#52677b,#263746);box-shadow:inset 0 0 4px #9db0bf}
+.cell.ship::before{content:"";position:absolute;inset:20% 8%;border-radius:50% 50% 35% 35%;background:#7890a1}
+.cell.hit{background:#b91c1c;animation:hit .35s}
+.cell.miss{background:#d1d5db}
+.cell.hit::after{content:"✕";color:white;font-size:20px;position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.cell.miss::after{content:"•";color:#111827;font-size:24px;position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.cell.attackable{cursor:pointer}
+.cell.bomb-area{outline:2px solid #facc15;z-index:2}
 
-button,
-input {
-    font: inherit;
-}
+@keyframes hit{0%{transform:scale(.7)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 
-button {
-    border: none;
-    border-radius: 12px;
-    padding: 13px 20px;
-    margin: 6px;
-    color: white;
-    background: #1266a8;
-    cursor: pointer;
-    font-weight: bold;
-}
+.weapons{width:100%;max-width:500px;margin-top:15px;display:flex;gap:8px;justify-content:center}
+.weapon{flex:1;background:#12364e;border:2px solid #28516d;padding:12px;border-radius:14px;cursor:pointer}
+.weapon.selected{border-color:#facc15;background:#19506d}
+.weapon small{display:block;color:#b8d7e8;margin-top:4px}
+.weapon.unlimited small{color:#86efac}
 
-button:hover {
-    background: #1684d4;
-}
-
-button:active {
-    transform: scale(.96);
-}
-
-button:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-}
-
-button.back {
-    background: #6b2935;
-}
-
-button.success {
-    background: #16834a;
-}
-
-button.warning {
-    background: #9a6b16;
-}
-
-.screen {
-    display: none;
-    min-height: 100vh;
-    padding: 25px 15px;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-
-.screen.active {
-    display: flex;
-}
-
-.panel {
-    width: 100%;
-    max-width: 430px;
-    padding: 25px;
-    border-radius: 20px;
-    background: #0d2233;
-    box-shadow: 0 0 25px #0008;
-}
-
-h1 {
-    color: #38bdf8;
-}
-
-h2 {
-    color: #7dd3fc;
-}
-
-.menu-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.menu-buttons button {
-    width: 100%;
-    margin: 0;
-}
-
-input {
-    width: 100%;
-    padding: 13px;
-    margin: 8px 0;
-    border: 1px solid #28516d;
-    border-radius: 10px;
-    background: #07131d;
-    color: white;
-    text-align: center;
-    outline: none;
-}
-
-.status {
-    min-height: 25px;
-    margin: 12px 0;
-    color: #facc15;
-}
-
-.boards {
-    width: 100%;
-    max-width: 900px;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 25px;
-}
-
-.board-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.board {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    width: min(90vw, 360px);
-    aspect-ratio: 1;
-    border: 2px solid #2384bd;
-    background: #0a2b43;
-}
-
-.cell {
-    border: 1px solid #174b68;
-    background: #0b344f;
-    cursor: pointer;
-    position: relative;
-}
-
-.cell.ship {
-    background: #64748b;
-}
-
-.cell.hit {
-    background: #b91c1c;
-}
-
-.cell.miss {
-    background: #d1d5db;
-}
-
-.cell.hit::after {
-    content: "✕";
-    color: white;
-    font-size: 20px;
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cell.miss::after {
-    content: "•";
-    color: #111827;
-    font-size: 24px;
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.room-list {
-    margin-top: 15px;
-}
-
-.room-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #12364e;
-    border-radius: 10px;
-    padding: 10px;
-    margin: 7px 0;
-}
-
-.room-item button {
-    margin: 0;
-    padding: 8px 14px;
-}
+.room-list{margin-top:15px}
+.room-item{display:flex;justify-content:space-between;align-items:center;background:#12364e;border-radius:10px;padding:10px;margin:7px 0}
+.room-item button{margin:0;padding:8px 14px}
+.notice{font-size:18px;font-weight:bold;margin:10px}
 </style>
 </head>
 
 <body>
 
 <section id="startScreen" class="screen active">
-    <div class="panel">
-        <h1>⚓ معركة السفن ⚓</h1>
-
-        <div class="menu-buttons">
-
-            <button type="button" onclick="openOnlineScreen()">
-                🎮 لعب أونلاين
-            </button>
-
-            <button type="button" onclick="openFriendScreen()">
-                🎮 لعب مع صديق
-            </button>
-
-            <button type="button" onclick="openSettingsScreen()">
-                ⚙️ الإعدادات
-            </button>
-
-        </div>
-    </div>
+<div class="panel">
+<h1>⚓ معركة السفن ⚓</h1>
+<div class="menu-buttons">
+<button onclick="openOnlineScreen()">🎮 لعب أونلاين</button>
+<button onclick="openFriendScreen()">🎮 لعب مع صديق</button>
+<button onclick="openSettingsScreen()">⚙️ الإعدادات</button>
+</div>
+</div>
 </section>
-
 
 <section id="onlineScreen" class="screen">
-    <div class="panel">
-
-        <h2>🎮 لعب أونلاين</h2>
-
-        <div class="status" id="onlineStatus">
-            اضغط للبحث عن لاعب
-        </div>
-
-        <div class="menu-buttons">
-
-            <button
-                type="button"
-                class="success"
-                id="onlineSearchButton"
-                onclick="startOnlineSearch()"
-            >
-                🔎 البحث عن لاعب
-            </button>
-
-            <button
-                type="button"
-                class="back"
-                onclick="cancelOnlineSearch(); backToMain();"
-            >
-                🏠 عودة
-            </button>
-
-        </div>
-    </div>
+<div class="panel">
+<h2>🎮 لعب أونلاين</h2>
+<div class="status" id="onlineStatus">اضغط للبحث عن لاعب</div>
+<div class="menu-buttons">
+<button class="success" id="onlineSearchButton" onclick="startOnlineSearch()">🔎 البحث عن لاعب</button>
+<button class="back" onclick="cancelOnlineSearch();backToMain()">🏠 عودة</button>
+</div>
+</div>
 </section>
-
 
 <section id="friendScreen" class="screen">
-    <div class="panel">
-
-        <h2>🎮 لعب مع صديق</h2>
-
-        <div class="menu-buttons">
-
-            <button type="button" onclick="showCreateRoom()">
-                🏠 إنشاء غرفة
-            </button>
-
-            <button type="button" onclick="showJoinRoom()">
-                🚪 دخول إلى غرفة
-            </button>
-
-            <button type="button" class="back" onclick="backToMain()">
-                🏠 عودة
-            </button>
-
-        </div>
-
-        <div id="friendStatus" class="status"></div>
-
-    </div>
+<div class="panel">
+<h2>🎮 لعب مع صديق</h2>
+<div class="menu-buttons">
+<button onclick="showCreateRoom()">🏠 إنشاء غرفة</button>
+<button onclick="showJoinRoom()">🚪 دخول إلى غرفة</button>
+<button class="back" onclick="backToMain()">🏠 عودة</button>
+</div>
+<div id="friendStatus" class="status"></div>
+</div>
 </section>
-
 
 <section id="createRoomScreen" class="screen">
-    <div class="panel">
-
-        <h2>🏠 إنشاء غرفة</h2>
-
-        <input
-            id="createRoomName"
-            type="text"
-            placeholder="اسم الغرفة"
-            maxlength="30"
-        >
-
-        <div class="menu-buttons">
-
-            <button
-                type="button"
-                class="success"
-                onclick="createRoom()"
-            >
-                إنشاء الغرفة
-            </button>
-
-            <button
-                type="button"
-                class="back"
-                onclick="openFriendScreen()"
-            >
-                🏠 عودة
-            </button>
-
-        </div>
-
-        <div id="createStatus" class="status"></div>
-
-    </div>
+<div class="panel">
+<h2>🏠 إنشاء غرفة</h2>
+<input id="createRoomName" placeholder="اسم الغرفة" maxlength="30">
+<div class="menu-buttons">
+<button class="success" onclick="createRoom()">إنشاء الغرفة</button>
+<button class="back" onclick="openFriendScreen()">🏠 عودة</button>
+</div>
+<div id="createStatus" class="status"></div>
+</div>
 </section>
-
 
 <section id="joinRoomScreen" class="screen">
-    <div class="panel">
-
-        <h2>🚪 دخول إلى غرفة</h2>
-
-        <input
-            id="joinRoomId"
-            type="text"
-            inputmode="numeric"
-            placeholder="رمز الغرفة"
-            maxlength="30"
-        >
-
-        <div class="menu-buttons">
-
-            <button
-                type="button"
-                class="success"
-                onclick="joinRoom()"
-            >
-                دخول
-            </button>
-
-            <button
-                type="button"
-                class="back"
-                onclick="openFriendScreen()"
-            >
-                🏠 عودة
-            </button>
-
-        </div>
-
-        <div id="joinStatus" class="status"></div>
-
-        <div id="roomList" class="room-list"></div>
-
-    </div>
+<div class="panel">
+<h2>🚪 دخول إلى غرفة</h2>
+<input id="joinRoomId" inputmode="numeric" placeholder="رمز الغرفة" maxlength="30">
+<div class="menu-buttons">
+<button class="success" onclick="joinRoom()">دخول</button>
+<button class="back" onclick="openFriendScreen()">🏠 عودة</button>
+</div>
+<div id="joinStatus" class="status"></div>
+<div id="roomList" class="room-list"></div>
+</div>
 </section>
-
 
 <section id="lobbyScreen" class="screen">
-    <div class="panel">
-
-        <h2>🚢 غرفة اللعب</h2>
-
-        <p>رمز الغرفة:</p>
-
-        <h2 id="roomCode">---</h2>
-
-        <p id="lobbyStatus" class="status">
-            في انتظار اللاعب الآخر...
-        </p>
-
-        <div class="menu-buttons">
-
-            <button
-                type="button"
-                class="success"
-                id="readyButton"
-                onclick="readyUp()"
-            >
-                ✅ جاهز
-            </button>
-
-            <button
-                type="button"
-                class="back"
-                onclick="leaveRoom()"
-            >
-                🚪 مغادرة الغرفة
-            </button>
-
-        </div>
-
-    </div>
+<div class="panel">
+<h2>🚢 غرفة اللعب</h2>
+<p>رمز الغرفة:</p>
+<h2 id="roomCode">---</h2>
+<p id="lobbyStatus" class="status">في انتظار اللاعب الآخر...</p>
+<div class="menu-buttons">
+<button class="success" id="readyButton" onclick="readyUp()">✅ جاهز</button>
+<button class="back" onclick="leaveRoom()">🚪 مغادرة الغرفة</button>
+</div>
+</div>
 </section>
-
 
 <section id="settingsScreen" class="screen">
-    <div class="panel">
-
-        <h2>⚙️ الإعدادات</h2>
-
-        <label for="playerName">اسم اللاعب</label>
-
-        <input
-            id="playerName"
-            type="text"
-            maxlength="20"
-            placeholder="اكتب اسمك"
-        >
-
-        <div class="menu-buttons">
-
-            <button
-                type="button"
-                class="success"
-                onclick="saveSettings()"
-            >
-                💾 حفظ
-            </button>
-
-            <button
-                type="button"
-                class="back"
-                onclick="backToMain()"
-            >
-                🏠 عودة
-            </button>
-
-        </div>
-
-        <div id="settingsStatus" class="status"></div>
-
-    </div>
+<div class="panel">
+<h2>⚙️ الإعدادات</h2>
+<label>اسم اللاعب</label>
+<input id="playerName" maxlength="20" placeholder="اكتب اسمك">
+<div class="menu-buttons">
+<button class="success" onclick="saveSettings()">💾 حفظ</button>
+<button class="back" onclick="backToMain()">🏠 عودة</button>
+</div>
+<div id="settingsStatus" class="status"></div>
+</div>
 </section>
-
 
 <section id="gameScreen" class="screen">
 
-    <h1>⚔️ المعركة بدأت ⚔️</h1>
+<div class="game-top">
+<h1>⚔️ معركة السفن ⚔️</h1>
+<p>👤 <span id="myName">أنت</span></p>
 
-    <p>👤 <span id="myName">أنت</span></p>
+<div id="prepArea">
+<div class="timer">⏱️ <span id="prepTimer">20</span></div>
+<div class="notice" id="prepStatus">رتّب سفنك ثم أكد الترتيب</div>
+</div>
 
-    <p>
-        🎯 الدور:
-        <span id="turnText">---</span>
-    </p>
+<div class="turn-box" id="turnBox">---</div>
+</div>
 
-    <div class="boards">
+<div class="boards">
+<div class="board-container">
+<h2>🚢 سفنك</h2>
+<div id="myBoard" class="board"></div>
+</div>
+</div>
 
-        <div class="board-container">
+<div id="placementControls">
+<button onclick="randomizeShips()">🔀 ترتيب عشوائي</button>
+<button class="success" id="battleReadyButton" onclick="sendReadyForBattle()">✅ تأكيد الترتيب</button>
+</div>
 
-            <h2>سفينتي</h2>
+<div id="weaponsArea" style="display:none">
+<div class="weapons">
+<div class="weapon selected" id="normalWeapon" onclick="selectWeapon('normal')">
+🎯 قذيفة
+<small>خانة واحدة • ∞</small>
+</div>
 
-            <div id="myBoard" class="board"></div>
+<div class="weapon" id="bombWeapon" onclick="selectWeapon('bomb')">
+💣 قنبلة
+<small>9 خانات • <span id="bombAmmo">2</span></small>
+</div>
+</div>
 
-        </div>
+<button class="success" id="fireButton" onclick="fireSelectedWeapon()">🔥 إطلاق</button>
+</div>
 
-        <div class="board-container">
+<div id="gameStatus" class="status"></div>
 
-            <h2>سفن الخصم</h2>
-
-            <div id="enemyBoard" class="board"></div>
-
-        </div>
-
-    </div>
-
-    <div>
-
-        <button
-            type="button"
-            onclick="randomizeShips()"
-        >
-            🔀 ترتيب عشوائي
-        </button>
-
-        <button
-            type="button"
-            class="success"
-            id="battleReadyButton"
-            onclick="sendReadyForBattle()"
-        >
-            ⚔️ بدء المعركة
-        </button>
-
-        <button
-            type="button"
-            class="back"
-            onclick="leaveGame()"
-        >
-            🚪 خروج
-        </button>
-
-    </div>
-
-    <div id="gameStatus" class="status"></div>
+<button class="back" onclick="leaveGame()">🚪 خروج</button>
 
 </section>
-
 
 <section id="resultScreen" class="screen">
-
-    <div class="panel">
-
-        <h1>🏆 النتيجة</h1>
-
-        <div id="resultText"></div>
-
-        <button
-            type="button"
-            onclick="backToMain()"
-        >
-            🏠 القائمة الرئيسية
-        </button>
-
-    </div>
-
+<div class="panel">
+<h1>🏆 النتيجة</h1>
+<div id="resultText"></div>
+<button onclick="backToMain()">🏠 القائمة الرئيسية</button>
+</div>
 </section>
-
 
 <script>
 "use strict";
 
 const SERVER_URL =
-    location.protocol === "https:"
-        ? "wss://" + location.host
-        : "ws://" + location.host;
+ location.protocol==="https:" ? "wss://"+location.host : "ws://"+location.host;
 
-let socket = null;
+let socket=null;
+let currentRoom=null;
+let playerId=null;
+let playerName=localStorage.getItem("playerName")||"لاعب";
 
-let currentRoom = null;
-let playerId = null;
+let isReady=false;
+let isBattleReady=false;
+let isMyTurn=false;
+let gamePhase="none";
+let selectedWeapon="normal";
+let selectedTarget=null;
+let prepTimerInterval=null;
+let prepSeconds=20;
+let isSearchingOnline=false;
 
-let playerName =
-    localStorage.getItem("playerName") || "لاعب";
+let myGrid=createEmptyGrid();
 
-let isReady = false;
-let isBattleReady = false;
-let isMyTurn = false;
-let isSearchingOnline = false;
-
-let myGrid = createEmptyGrid();
-let enemyGrid = createEmptyGrid();
-
-const ships = [
-    { size: 4, cells: [] },
-    { size: 3, cells: [] },
-    { size: 3, cells: [] },
-    { size: 2, cells: [] },
-    { size: 2, cells: [] }
+const ships=[
+ {size:4,cells:[]},
+ {size:3,cells:[]},
+ {size:3,cells:[]},
+ {size:2,cells:[]},
+ {size:2,cells:[]}
 ];
 
+let weapons={
+ normal:Infinity,
+ bomb:2
+};
 
-function createEmptyGrid() {
-    return Array.from(
-        { length: 10 },
-        () => Array(10).fill("")
-    );
+function createEmptyGrid(){
+ return Array.from({length:10},()=>Array(10).fill(""));
 }
 
-
-function showScreen(id) {
-
-    document.querySelectorAll(".screen").forEach(screen => {
-        screen.classList.remove("active");
-    });
-
-    const screen =
-        document.getElementById(id);
-
-    if (screen) {
-        screen.classList.add("active");
-    }
+function showScreen(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ document.getElementById(id)?.classList.add("active");
 }
 
-
-function setStatus(id, text) {
-
-    const element =
-        document.getElementById(id);
-
-    if (element) {
-        element.textContent = text || "";
-    }
+function setStatus(id,text){
+ const e=document.getElementById(id);
+ if(e)e.textContent=text||"";
 }
 
-
-function backToMain() {
-
-    cancelOnlineSearch();
-
-    currentRoom = null;
-    isReady = false;
-    isBattleReady = false;
-
-    showScreen("startScreen");
+function backToMain(){
+ cancelOnlineSearch();
+ if(currentRoom) sendMessage({type:"leaveRoom",roomId:currentRoom});
+ currentRoom=null;
+ isReady=false;
+ isBattleReady=false;
+ stopPrepTimer();
+ showScreen("startScreen");
 }
 
-
-function openOnlineScreen() {
-
-    showScreen("onlineScreen");
-
-    setStatus(
-        "onlineStatus",
-        isSearchingOnline
-            ? "🔎 جاري البحث عن لاعب..."
-            : "اضغط للبحث عن لاعب"
-    );
+function openOnlineScreen(){
+ showScreen("onlineScreen");
+ setStatus("onlineStatus",isSearchingOnline?"🔎 جاري البحث عن لاعب...":"اضغط للبحث عن لاعب");
 }
 
-
-function openFriendScreen() {
-
-    cancelOnlineSearch();
-
-    showScreen("friendScreen");
-
-    setStatus("friendStatus", "");
+function openFriendScreen(){
+ cancelOnlineSearch();
+ showScreen("friendScreen");
+ setStatus("friendStatus","");
 }
 
-
-function openSettingsScreen() {
-
-    document.getElementById("playerName").value =
-        playerName;
-
-    setStatus("settingsStatus", "");
-
-    showScreen("settingsScreen");
+function openSettingsScreen(){
+ document.getElementById("playerName").value=playerName;
+ setStatus("settingsStatus","");
+ showScreen("settingsScreen");
 }
 
-
-function showCreateRoom() {
-
-    cancelOnlineSearch();
-
-    document.getElementById(
-        "createRoomName"
-    ).value = "";
-
-    setStatus("createStatus", "");
-
-    showScreen("createRoomScreen");
+function showCreateRoom(){
+ cancelOnlineSearch();
+ document.getElementById("createRoomName").value="";
+ showScreen("createRoomScreen");
 }
 
-
-function showJoinRoom() {
-
-    cancelOnlineSearch();
-
-    document.getElementById(
-        "joinRoomId"
-    ).value = "";
-
-    setStatus("joinStatus", "");
-
-    showScreen("joinRoomScreen");
-
-    requestRoomList();
+function showJoinRoom(){
+ cancelOnlineSearch();
+ document.getElementById("joinRoomId").value="";
+ showScreen("joinRoomScreen");
+ requestRoomList();
 }
 
-
-function saveSettings() {
-
-    const name =
-        document
-            .getElementById("playerName")
-            .value
-            .trim();
-
-    if (!name) {
-
-        setStatus(
-            "settingsStatus",
-            "اكتب اسم اللاعب أولاً"
-        );
-
-        return;
-    }
-
-    playerName = name;
-
-    localStorage.setItem(
-        "playerName",
-        playerName
-    );
-
-    setStatus(
-        "settingsStatus",
-        "تم حفظ الاسم بنجاح"
-    );
+function saveSettings(){
+ const name=document.getElementById("playerName").value.trim();
+ if(!name){setStatus("settingsStatus","اكتب اسم اللاعب أولاً");return}
+ playerName=name;
+ localStorage.setItem("playerName",playerName);
+ setStatus("settingsStatus","تم حفظ الاسم بنجاح");
 }
 
+function connectToServer(callback){
+ if(socket?.readyState===WebSocket.OPEN){callback?.();return}
 
-function connectToServer(callback) {
+ if(socket?.readyState===WebSocket.CONNECTING){
+  const t=setInterval(()=>{
+   if(socket?.readyState===WebSocket.OPEN){clearInterval(t);callback?.()}
+   if(!socket||socket.readyState===WebSocket.CLOSED)clearInterval(t);
+  },100);
+  return;
+ }
 
-    if (
-        socket &&
-        socket.readyState === WebSocket.OPEN
-    ) {
+ try{socket=new WebSocket(SERVER_URL)}
+ catch(e){showConnectionError();return}
 
-        if (callback) {
-            callback();
-        }
+ socket.onopen=()=>{
+  sendMessage({type:"connect",name:playerName,playerName});
+  callback?.();
+ };
 
-        return;
-    }
+ socket.onmessage=e=>handleServerMessage(e.data);
 
-    if (
-        socket &&
-        socket.readyState === WebSocket.CONNECTING
-    ) {
+ socket.onerror=()=>showConnectionError();
 
-        const timer = setInterval(() => {
-
-            if (
-                socket &&
-                socket.readyState ===
-                    WebSocket.OPEN
-            ) {
-
-                clearInterval(timer);
-
-                if (callback) {
-                    callback();
-                }
-            }
-
-            if (
-                !socket ||
-                socket.readyState ===
-                    WebSocket.CLOSED
-            ) {
-
-                clearInterval(timer);
-            }
-
-        }, 100);
-
-        return;
-    }
-
-    try {
-
-        socket =
-            new WebSocket(SERVER_URL);
-
-    } catch (error) {
-
-        showConnectionError();
-
-        return;
-    }
-
-
-    socket.onopen = function() {
-
-        sendMessage({
-            type: "connect",
-            name: playerName,
-            playerName: playerName
-        });
-
-        if (callback) {
-            callback();
-        }
-    };
-
-
-    socket.onmessage = function(event) {
-
-        handleServerMessage(
-            event.data
-        );
-    };
-
-
-    socket.onerror = function() {
-
-        showConnectionError();
-    };
-
-
-    socket.onclose = function() {
-
-        socket = null;
-
-        isSearchingOnline = false;
-
-        const button =
-            document.getElementById(
-                "onlineSearchButton"
-            );
-
-        if (button) {
-
-            button.disabled = false;
-
-            button.textContent =
-                "🔎 البحث عن لاعب";
-        }
-
-    };
+ socket.onclose=()=>{
+  socket=null;
+  isSearchingOnline=false;
+ };
 }
 
-
-function showConnectionError() {
-
-    setStatus(
-        "onlineStatus",
-        "❌ تعذر الاتصال بالسيرفر"
-    );
-
-    setStatus(
-        "friendStatus",
-        "❌ تعذر الاتصال بالسيرفر"
-    );
-
-    setStatus(
-        "createStatus",
-        "❌ تعذر الاتصال بالسيرفر"
-    );
-
-    setStatus(
-        "joinStatus",
-        "❌ تعذر الاتصال بالسيرفر"
-    );
+function ensureConnection(callback){
+ if(socket?.readyState===WebSocket.OPEN)callback();
+ else connectToServer(callback);
 }
 
-
-function ensureConnection(callback) {
-
-    if (
-        socket &&
-        socket.readyState ===
-            WebSocket.OPEN
-    ) {
-
-        callback();
-
-        return;
-    }
-
-    connectToServer(callback);
+function sendMessage(data){
+ if(!socket||socket.readyState!==WebSocket.OPEN)return false;
+ try{socket.send(JSON.stringify(data));return true}catch(e){return false}
 }
 
-
-function sendMessage(data) {
-
-    if (
-        !socket ||
-        socket.readyState !==
-            WebSocket.OPEN
-    ) {
-
-        return false;
-    }
-
-    try {
-
-        socket.send(
-            JSON.stringify(data)
-        );
-
-        return true;
-
-    } catch (error) {
-
-        return false;
-    }
+function showConnectionError(){
+ ["onlineStatus","friendStatus","createStatus","joinStatus","lobbyStatus","gameStatus"]
+ .forEach(id=>setStatus(id,"❌ تعذر الاتصال بالسيرفر"));
 }
 
+/* ONLINE */
 
-/* =========================
-   ONLINE
-========================= */
+function startOnlineSearch(){
+ if(isSearchingOnline)return;
+ isSearchingOnline=true;
 
-function startOnlineSearch() {
+ const b=document.getElementById("onlineSearchButton");
+ b.disabled=true;
+ b.textContent="🔎 جاري البحث...";
+ setStatus("onlineStatus","🔎 جاري البحث عن لاعب متصل...");
 
-    if (isSearchingOnline) {
-        return;
-    }
-
-    isSearchingOnline = true;
-
-    setStatus(
-        "onlineStatus",
-        "🔎 جاري البحث عن لاعب متصل..."
-    );
-
-    const button =
-        document.getElementById(
-            "onlineSearchButton"
-        );
-
-    button.disabled = true;
-
-    button.textContent =
-        "🔎 جاري البحث...";
-
-
-    ensureConnection(() => {
-
-        sendMessage({
-            type: "findMatch",
-            playerName,
-            name: playerName
-        });
-
-    });
+ ensureConnection(()=>{
+  sendMessage({type:"findMatch",playerName,name:playerName});
+ });
 }
 
+function cancelOnlineSearch(){
+ if(isSearchingOnline)sendMessage({type:"cancelMatch"});
+ isSearchingOnline=false;
 
-function cancelOnlineSearch() {
-
-    if (
-        isSearchingOnline &&
-        socket &&
-        socket.readyState ===
-            WebSocket.OPEN
-    ) {
-
-        sendMessage({
-            type: "cancelMatch"
-        });
-    }
-
-    isSearchingOnline = false;
-
-    const button =
-        document.getElementById(
-            "onlineSearchButton"
-        );
-
-    if (button) {
-
-        button.disabled = false;
-
-        button.textContent =
-            "🔎 البحث عن لاعب";
-    }
-
-    setStatus(
-        "onlineStatus",
-        "اضغط للبحث عن لاعب"
-    );
+ const b=document.getElementById("onlineSearchButton");
+ if(b){b.disabled=false;b.textContent="🔎 البحث عن لاعب"}
 }
 
+/* ROOMS */
 
-/* =========================
-   ROOMS
-========================= */
+function createRoom(){
+ const roomName=document.getElementById("createRoomName").value.trim();
+ if(!roomName){setStatus("createStatus","اكتب اسم الغرفة");return}
 
-function createRoom() {
-
-    const roomName =
-        document
-            .getElementById(
-                "createRoomName"
-            )
-            .value
-            .trim();
-
-    if (!roomName) {
-
-        setStatus(
-            "createStatus",
-            "اكتب اسم الغرفة"
-        );
-
-        return;
-    }
-
-    setStatus(
-        "createStatus",
-        "⏳ جاري إنشاء الغرفة..."
-    );
-
-
-    ensureConnection(() => {
-
-        const sent =
-            sendMessage({
-                type: "createRoom",
-                roomName,
-                playerName,
-                name: playerName
-            });
-
-        if (!sent) {
-
-            setStatus(
-                "createStatus",
-                "❌ لم يتم الاتصال بالسيرفر"
-            );
-        }
-
-    });
+ setStatus("createStatus","⏳ جاري إنشاء الغرفة...");
+ ensureConnection(()=>{
+  sendMessage({type:"createRoom",roomName,playerName,name:playerName});
+ });
 }
 
+function joinRoom(){
+ const roomId=document.getElementById("joinRoomId").value.trim();
+ if(!roomId){setStatus("joinStatus","اكتب رمز الغرفة");return}
 
-function joinRoom() {
-
-    const roomId =
-        document
-            .getElementById(
-                "joinRoomId"
-            )
-            .value
-            .trim();
-
-    if (!roomId) {
-
-        setStatus(
-            "joinStatus",
-            "اكتب رمز الغرفة"
-        );
-
-        return;
-    }
-
-    setStatus(
-        "joinStatus",
-        "⏳ جاري الدخول إلى الغرفة..."
-    );
-
-
-    ensureConnection(() => {
-
-        sendMessage({
-            type: "joinRoom",
-            roomId,
-            playerName,
-            name: playerName
-        });
-
-    });
+ setStatus("joinStatus","⏳ جاري الدخول إلى الغرفة...");
+ ensureConnection(()=>{
+  sendMessage({type:"joinRoom",roomId,playerName,name:playerName});
+ });
 }
 
-
-function requestRoomList() {
-
-    ensureConnection(() => {
-
-        sendMessage({
-            type: "roomList"
-        });
-
-    });
+function requestRoomList(){
+ ensureConnection(()=>sendMessage({type:"roomList"}));
 }
 
+function readyUp(){
+ if(!currentRoom){setStatus("lobbyStatus","❌ لا توجد غرفة");return}
+ if(isReady)return;
 
-function readyUp() {
+ isReady=true;
+ const b=document.getElementById("readyButton");
+ b.disabled=true;
+ b.textContent="✅ تم التجهيز";
 
-    if (!currentRoom) {
-
-        setStatus(
-            "lobbyStatus",
-            "❌ لا توجد غرفة"
-        );
-
-        return;
-    }
-
-    if (isReady) {
-        return;
-    }
-
-    isReady = true;
-
-    const button =
-        document.getElementById(
-            "readyButton"
-        );
-
-    if (button) {
-        button.disabled = true;
-        button.textContent =
-            "✅ تم التجهيز";
-    }
-
-    sendMessage({
-        type: "ready",
-        roomId: currentRoom
-    });
-
-    setStatus(
-        "lobbyStatus",
-        "✅ أنت جاهز، في انتظار اللاعب الآخر..."
-    );
+ sendMessage({type:"ready",roomId:currentRoom});
+ setStatus("lobbyStatus","✅ أنت جاهز، في انتظار اللاعب الآخر...");
 }
 
-
-function leaveRoom() {
-
-    if (
-        currentRoom &&
-        socket &&
-        socket.readyState ===
-            WebSocket.OPEN
-    ) {
-
-        sendMessage({
-            type: "leaveRoom",
-            roomId: currentRoom
-        });
-    }
-
-    currentRoom = null;
-    isReady = false;
-    isBattleReady = false;
-
-    resetReadyButton();
-
-    openFriendScreen();
+function resetReadyButton(){
+ const b=document.getElementById("readyButton");
+ if(b){b.disabled=false;b.textContent="✅ جاهز"}
 }
 
-
-function leaveGame() {
-
-    leaveRoom();
+function leaveRoom(){
+ if(currentRoom)sendMessage({type:"leaveRoom",roomId:currentRoom});
+ currentRoom=null;
+ isReady=false;
+ isBattleReady=false;
+ stopPrepTimer();
+ resetReadyButton();
+ showScreen("friendScreen");
 }
 
+function leaveGame(){leaveRoom()}
 
-function resetReadyButton() {
+/* SERVER */
 
-    const button =
-        document.getElementById(
-            "readyButton"
-        );
+function handleServerMessage(raw){
+ let data;
+ try{data=typeof raw==="string"?JSON.parse(raw):raw}catch(e){return}
+ if(!data?.type)return;
 
-    if (button) {
+ switch(data.type){
 
-        button.disabled = false;
+ case "connected":
+  playerId=data.playerId||data.id||playerId;
+  break;
 
-        button.textContent =
-            "✅ جاهز";
-    }
+ case "searching":
+  setStatus("onlineStatus","🔎 جاري البحث عن لاعب...");
+  break;
+
+ case "matchFound":
+  isSearchingOnline=false;
+  currentRoom=data.roomId||null;
+  document.getElementById("roomCode").textContent=currentRoom||"---";
+  isReady=false;
+  resetReadyButton();
+  showScreen("lobbyScreen");
+  setStatus("lobbyStatus","🎉 تم العثور على الخصم، اضغط جاهز");
+  break;
+
+ case "roomCreated":
+ case "roomJoined":
+  currentRoom=data.roomId||data.roomCode||null;
+  isReady=false;
+  resetReadyButton();
+  document.getElementById("roomCode").textContent=currentRoom||"---";
+  showScreen("lobbyScreen");
+  setStatus("lobbyStatus",data.type==="roomCreated"
+   ?"🏠 تم إنشاء الغرفة، أرسل الرمز للخصم"
+   :"✅ دخلت إلى الغرفة، اضغط جاهز");
+  break;
+
+ case "roomInfo":
+  currentRoom=data.roomId||currentRoom;
+  if(currentRoom)document.getElementById("roomCode").textContent=currentRoom;
+  break;
+
+ case "playerJoined":
+  setStatus("lobbyStatus","👤 دخل اللاعب الآخر إلى الغرفة، اضغط جاهز");
+  break;
+
+ case "playerReady":
+  setStatus("lobbyStatus",
+   data.playerId===playerId
+   ?"✅ أنت جاهز، في انتظار الخصم..."
+   :"👤 اللاعب الآخر جاهز، اضغط جاهز للبدء");
+  break;
+
+ case "startGame":
+  startPreparation(data);
+  break;
+
+ case "preparationTimer":
+  startPrepTimer(Number(data.seconds)||0);
+  break;
+
+ case "playerBattleReady":
+  if(data.playerId===playerId)
+   setStatus("prepStatus","✅ تم تأكيد ترتيبك، في انتظار الخصم...");
+  else
+   setStatus("prepStatus","👤 الخصم أكد ترتيبه");
+  break;
+
+ case "battleStarted":
+  startBattle(data);
+  break;
+
+ case "attackResult":
+  applyAttackResult(data);
+  break;
+
+ case "reward":
+  showReward(data);
+  break;
+
+ case "gameOver":
+  stopPrepTimer();
+  document.getElementById("resultText").innerHTML=
+   data.winnerId===playerId
+   ?"<h2>🎉 فزت!</h2><p>🏆 دمرت أسطول الخصم بالكامل</p>"
+   :"<h2>💀 خسرت!</h2><p>تم تدمير أسطولك</p>";
+  showScreen("resultScreen");
+  break;
+
+ case "roomList":
+  renderRooms(data.rooms||[]);
+  break;
+
+ case "opponentLeft":
+  alert(data.message||"غادر اللاعب الآخر الغرفة");
+  leaveRoom();
+  break;
+
+ case "error":
+  showErrorMessage(data.message||"حدث خطأ");
+  break;
+ }
 }
 
-
-/* =========================
-   SERVER MESSAGES
-========================= */
-
-function handleServerMessage(rawMessage) {
-
-    let data;
-
-    try {
-
-        data =
-            typeof rawMessage === "string"
-                ? JSON.parse(rawMessage)
-                : rawMessage;
-
-    } catch (error) {
-
-        return;
-    }
-
-    if (!data || !data.type) {
-        return;
-    }
-
-
-    switch (data.type) {
-
-        case "connected":
-
-            playerId =
-                data.playerId ||
-                data.id ||
-                playerId;
-
-            break;
-
-
-        case "searching":
-
-            isSearchingOnline = true;
-
-            setStatus(
-                "onlineStatus",
-                "🔎 جاري البحث عن لاعب..."
-            );
-
-            break;
-
-
-        case "matchFound":
-
-            isSearchingOnline = false;
-
-            currentRoom =
-                data.roomId ||
-                data.roomCode ||
-                null;
-
-            setStatus(
-                "onlineStatus",
-                "🎉 تم العثور على لاعب!"
-            );
-
-            document.getElementById(
-                "roomCode"
-            ).textContent =
-                currentRoom || "---";
-
-            isReady = false;
-
-            resetReadyButton();
-
-            showScreen("lobbyScreen");
-
-            setStatus(
-                "lobbyStatus",
-                "🎉 تم العثور على الخصم، اضغط جاهز"
-            );
-
-            break;
-
-
-        case "roomCreated":
-
-            currentRoom =
-                data.roomId ||
-                data.roomCode ||
-                data.id ||
-                null;
-
-            isReady = false;
-
-            resetReadyButton();
-
-            document.getElementById(
-                "roomCode"
-            ).textContent =
-                currentRoom || "---";
-
-            showScreen("lobbyScreen");
-
-            setStatus(
-                "lobbyStatus",
-                "🏠 تم إنشاء الغرفة، أرسل رمز الغرفة للخصم"
-            );
-
-            break;
-
-
-        case "roomJoined":
-
-            currentRoom =
-                data.roomId ||
-                data.roomCode ||
-                data.id ||
-                null;
-
-            isReady = false;
-
-            resetReadyButton();
-
-            document.getElementById(
-                "roomCode"
-            ).textContent =
-                currentRoom || "---";
-
-            showScreen("lobbyScreen");
-
-            setStatus(
-                "lobbyStatus",
-                "✅ دخلت إلى الغرفة، اضغط جاهز"
-            );
-
-            break;
-
-
-        case "roomInfo":
-
-            currentRoom =
-                data.roomId ||
-                currentRoom;
-
-            if (currentRoom) {
-
-                document.getElementById(
-                    "roomCode"
-                ).textContent =
-                    currentRoom;
-            }
-
-            if (
-                data.players &&
-                data.players.length === 2
-            ) {
-
-                const other =
-                    data.players.find(
-                        p =>
-                            p.id !==
-                            playerId
-                    );
-
-                if (
-                    other &&
-                    !isReady
-                ) {
-
-                    setStatus(
-                        "lobbyStatus",
-                        "👤 دخل اللاعب الآخر، اضغط جاهز"
-                    );
-                }
-            }
-
-            break;
-
-
-        case "playerJoined":
-
-            setStatus(
-                "lobbyStatus",
-                "👤 دخل اللاعب الآخر إلى الغرفة، اضغط جاهز"
-            );
-
-            break;
-
-
-        case "playerReady":
-
-            if (
-                data.playerId ===
-                playerId
-            ) {
-
-                setStatus(
-                    "lobbyStatus",
-                    "✅ أنت جاهز، في انتظار الخصم..."
-                );
-
-            } else {
-
-                setStatus(
-                    "lobbyStatus",
-                    "👤 اللاعب الآخر جاهز، اضغط جاهز للبدء"
-                );
-            }
-
-            break;
-
-
-        case "startGame":
-
-            startGame(data);
-
-            break;
-
-
-        case "turn":
-        case "turnChanged": {
-
-            const turnPlayerId =
-                data.currentPlayerId ||
-                data.playerId ||
-                data.nextPlayerId ||
-                null;
-
-            isMyTurn =
-                turnPlayerId === playerId;
-
-            document.getElementById(
-                "turnText"
-            ).textContent =
-                isMyTurn
-                    ? "دورك"
-                    : "دور الخصم";
-
-            break;
-        }
-
-
-        case "attackResult":
-
-            applyAttackResult(data);
-
-            break;
-
-
-        case "gameOver":
-
-            document.getElementById(
-                "resultText"
-            ).textContent =
-                data.winner === playerId
-                    ? "🎉 فزت!"
-                    : "💀 خسرت!";
-
-            showScreen(
-                "resultScreen"
-            );
-
-            break;
-
-
-        case "roomList":
-
-            renderRooms(
-                data.rooms || []
-            );
-
-            break;
-
-
-        case "opponentLeft":
-
-            currentRoom = null;
-            isReady = false;
-            isBattleReady = false;
-
-            resetReadyButton();
-
-            alert(
-                data.message ||
-                "غادر اللاعب الآخر الغرفة"
-            );
-
-            openFriendScreen();
-
-            break;
-
-
-        case "error":
-
-            showErrorMessage(
-                data.message ||
-                "حدث خطأ"
-            );
-
-            break;
-
-        default:
-            break;
-    }
+function showErrorMessage(message){
+ ["onlineStatus","friendStatus","createStatus","joinStatus","lobbyStatus","gameStatus"]
+ .forEach(id=>setStatus(id,message));
 }
 
+function renderRooms(rooms){
+ const list=document.getElementById("roomList");
+ list.innerHTML="";
+ if(!rooms.length){list.textContent="لا توجد غرف متاحة";return}
 
-function showErrorMessage(message) {
+ rooms.forEach(room=>{
+  const item=document.createElement("div");
+  item.className="room-item";
 
-    setStatus(
-        "onlineStatus",
-        message
-    );
+  const name=document.createElement("span");
+  name.textContent=(room.roomName||"غرفة")+" #"+room.roomId;
 
-    setStatus(
-        "friendStatus",
-        message
-    );
+  const b=document.createElement("button");
+  b.textContent="دخول";
+  b.className="success";
+  b.onclick=()=>{
+   document.getElementById("joinRoomId").value=room.roomId;
+   joinRoom();
+  };
 
-    setStatus(
-        "createStatus",
-        message
-    );
-
-    setStatus(
-        "joinStatus",
-        message
-    );
-
-    setStatus(
-        "lobbyStatus",
-        message
-    );
-
-    setStatus(
-        "gameStatus",
-        message
-    );
+  item.append(name,b);
+  list.appendChild(item);
+ });
 }
 
+/* PREPARATION */
 
-function renderRooms(rooms) {
+function startPreparation(data){
+ currentRoom=data.roomId||currentRoom;
+ gamePhase="preparation";
+ isBattleReady=false;
+ selectedTarget=null;
 
-    const list =
-        document.getElementById(
-            "roomList"
-        );
+ myGrid=Array.isArray(data.grid)?data.grid:createEmptyGrid();
 
-    list.innerHTML = "";
+ ships.forEach(s=>s.cells=[]);
 
-    if (!rooms.length) {
+ document.getElementById("myName").textContent=playerName;
+ document.getElementById("prepArea").style.display="block";
+ document.getElementById("placementControls").style.display="block";
+ document.getElementById("weaponsArea").style.display="none";
+ document.getElementById("turnBox").textContent="⏳ مرحلة ترتيب السفن";
+ document.getElementById("prepStatus").textContent="رتّب سفنك ثم أكد الترتيب";
 
-        list.textContent =
-            "لا توجد غرف متاحة";
+ const b=document.getElementById("battleReadyButton");
+ b.disabled=false;
+ b.textContent="✅ تأكيد الترتيب";
 
-        return;
-    }
+ renderBoard();
+ showScreen("gameScreen");
 
-    rooms.forEach(room => {
+ startPrepTimer(Number(data.seconds)||20);
 
-        const item =
-            document.createElement("div");
-
-        item.className =
-            "room-item";
-
-
-        const name =
-            document.createElement("span");
-
-        name.textContent =
-            (
-                room.roomName ||
-                room.name ||
-                "غرفة"
-            ) +
-            " #" +
-            (
-                room.roomId ||
-                room.id ||
-                ""
-            );
-
-
-        const button =
-            document.createElement("button");
-
-        button.type = "button";
-        button.textContent = "دخول";
-        button.className = "success";
-
-        button.addEventListener(
-            "click",
-            function() {
-
-                document.getElementById(
-                    "joinRoomId"
-                ).value =
-                    room.roomId ||
-                    room.id ||
-                    "";
-
-                joinRoom();
-            }
-        );
-
-
-        item.appendChild(name);
-        item.appendChild(button);
-
-        list.appendChild(item);
-    });
+ /* استخراج مواقع السفن الحالية أو إنشاء ترتيب عشوائي */
+ if(!hasValidLocalFleet()){
+  randomizeShips(false);
+ }else{
+  sendBattleGridUpdate();
+ }
 }
 
+function startPrepTimer(seconds){
+ clearInterval(prepTimerInterval);
+ prepSeconds=Math.max(0,seconds);
+ document.getElementById("prepTimer").textContent=prepSeconds;
 
-/* =========================
-   GAME
-========================= */
-
-function startGame(data) {
-
-    currentRoom =
-        data.roomId ||
-        currentRoom;
-
-    myGrid =
-        Array.isArray(data.grid)
-            ? data.grid
-            : myGrid;
-
-    enemyGrid =
-        createEmptyGrid();
-
-    isBattleReady = false;
-
-    const firstPlayer =
-        data.firstPlayer ||
-        data.currentPlayerId ||
-        null;
-
-    isMyTurn =
-        firstPlayer === playerId;
-
-    document.getElementById(
-        "myName"
-    ).textContent =
-        playerName;
-
-    document.getElementById(
-        "turnText"
-    ).textContent =
-        isMyTurn
-            ? "دورك"
-            : "دور الخصم";
-
-    document.getElementById(
-        "gameStatus"
-    ).textContent =
-        "🔀 رتّب سفنك ثم اضغط بدء المعركة";
-
-    const button =
-        document.getElementById(
-            "battleReadyButton"
-        );
-
-    if (button) {
-
-        button.disabled = false;
-
-        button.textContent =
-            "⚔️ بدء المعركة";
-    }
-
-    renderBoards();
-
-    showScreen("gameScreen");
+ prepTimerInterval=setInterval(()=>{
+  prepSeconds--;
+  document.getElementById("prepTimer").textContent=Math.max(0,prepSeconds);
+  if(prepSeconds<=0)stopPrepTimer();
+ },1000);
 }
 
-
-function renderBoards() {
-
-    const myBoard =
-        document.getElementById(
-            "myBoard"
-        );
-
-    const enemyBoard =
-        document.getElementById(
-            "enemyBoard"
-        );
-
-    myBoard.innerHTML = "";
-    enemyBoard.innerHTML = "";
-
-
-    for (
-        let row = 0;
-        row < 10;
-        row++
-    ) {
-
-        for (
-            let col = 0;
-            col < 10;
-            col++
-        ) {
-
-            const myCell =
-                document.createElement("div");
-
-            myCell.className =
-                "cell";
-
-
-            if (
-                myGrid[row][col] === "ship"
-            ) {
-                myCell.classList.add("ship");
-            }
-
-            if (
-                myGrid[row][col] === "hit"
-            ) {
-                myCell.classList.add("hit");
-            }
-
-            if (
-                myGrid[row][col] === "miss"
-            ) {
-                myCell.classList.add("miss");
-            }
-
-            myBoard.appendChild(
-                myCell
-            );
-
-
-            const enemyCell =
-                document.createElement("div");
-
-            enemyCell.className =
-                "cell";
-
-
-            if (
-                enemyGrid[row][col] === "hit"
-            ) {
-                enemyCell.classList.add("hit");
-            }
-
-            if (
-                enemyGrid[row][col] === "miss"
-            ) {
-                enemyCell.classList.add("miss");
-            }
-
-
-            enemyCell.addEventListener(
-                "click",
-                function() {
-                    attack(row, col);
-                }
-            );
-
-
-            enemyBoard.appendChild(
-                enemyCell
-            );
-        }
-    }
+function stopPrepTimer(){
+ clearInterval(prepTimerInterval);
+ prepTimerInterval=null;
 }
 
+function randomizeShips(sendUpdate=true){
+ myGrid=createEmptyGrid();
+ ships.forEach(s=>s.cells=[]);
 
-function attack(row, col) {
+ ships.forEach(ship=>{
+  let placed=false;
 
-    if (!isMyTurn) {
+  for(let tries=0;tries<2000&&!placed;tries++){
+   const horizontal=Math.random()>.5;
+   const row=Math.floor(Math.random()*10);
+   const col=Math.floor(Math.random()*10);
+   const cells=[];
 
-        setStatus(
-            "gameStatus",
-            "ليس دورك الآن"
-        );
+   for(let i=0;i<ship.size;i++){
+    const r=horizontal?row:row+i;
+    const c=horizontal?col+i:col;
 
-        return;
+    if(r>=10||c>=10||myGrid[r][c]!==""){
+     cells.length=0;
+     break;
     }
+    cells.push([r,c]);
+   }
 
-    if (
-        enemyGrid[row][col] !== ""
-    ) {
+   if(cells.length===ship.size){
+    cells.forEach(([r,c])=>myGrid[r][c]="ship");
+    ship.cells=cells;
+    placed=true;
+   }
+  }
+ });
 
-        setStatus(
-            "gameStatus",
-            "هاجمت هذه الخانة من قبل"
-        );
-
-        return;
-    }
-
-    if (!currentRoom) {
-
-        setStatus(
-            "gameStatus",
-            "لا توجد غرفة"
-        );
-
-        return;
-    }
-
-    sendMessage({
-        type: "attack",
-        roomId: currentRoom,
-        row,
-        col
-    });
+ renderBoard();
+ if(sendUpdate)sendBattleGridUpdate();
 }
 
-
-function applyAttackResult(data) {
-
-    const row =
-        Number(data.row);
-
-    const col =
-        Number(data.col);
-
-    if (
-        !Number.isInteger(row) ||
-        !Number.isInteger(col) ||
-        row < 0 ||
-        row >= 10 ||
-        col < 0 ||
-        col >= 10
-    ) {
-        return;
-    }
-
-
-    const attackerId =
-        data.attackerId ||
-        data.playerId ||
-        null;
-
-
-    if (
-        attackerId === playerId
-    ) {
-
-        enemyGrid[row][col] =
-            data.hit
-                ? "hit"
-                : "miss";
-
-    } else {
-
-        myGrid[row][col] =
-            data.hit
-                ? "hit"
-                : "miss";
-    }
-
-
-    const nextPlayerId =
-        data.nextPlayerId ||
-        data.currentPlayerId ||
-        null;
-
-    isMyTurn =
-        nextPlayerId === playerId;
-
-
-    document.getElementById(
-        "turnText"
-    ).textContent =
-        isMyTurn
-            ? "دورك"
-            : "دور الخصم";
-
-
-    renderBoards();
+function hasValidLocalFleet(){
+ return ships.every(s=>s.cells.length===s.size) &&
+  ships.reduce((n,s)=>n+s.cells.length,0)===14;
 }
 
+function sendBattleGridUpdate(){
+ if(gamePhase!=="preparation"||!currentRoom)return;
 
-function sendReadyForBattle() {
-
-    if (!currentRoom) {
-
-        setStatus(
-            "gameStatus",
-            "لا توجد غرفة"
-        );
-
-        return;
-    }
-
-    if (isBattleReady) {
-        return;
-    }
-
-    isBattleReady = true;
-
-    const button =
-        document.getElementById(
-            "battleReadyButton"
-        );
-
-    if (button) {
-
-        button.disabled = true;
-
-        button.textContent =
-            "⏳ في انتظار الخصم...";
-    }
-
-    sendMessage({
-        type: "battleReady",
-        roomId: currentRoom,
-        grid: myGrid
-    });
-
-    setStatus(
-        "gameStatus",
-        "✅ تم إرسال ترتيب سفنك، في انتظار الخصم..."
-    );
+ sendMessage({
+  type:"battleGridUpdate",
+  roomId:currentRoom,
+  grid:myGrid,
+  ships:ships.map(s=>({size:s.size,cells:s.cells}))
+ });
 }
 
+function sendReadyForBattle(){
+ if(!currentRoom||gamePhase!=="preparation")return;
+ if(isBattleReady)return;
 
-function randomizeShips() {
+ if(!hasValidLocalFleet()){
+  setStatus("prepStatus","❌ ترتيب السفن غير صحيح");
+  return;
+ }
 
-    myGrid =
-        createEmptyGrid();
+ isBattleReady=true;
 
-    ships.forEach(
-        ship => {
-            ship.cells = [];
-        }
-    );
+ const b=document.getElementById("battleReadyButton");
+ b.disabled=true;
+ b.textContent="⏳ تم التأكيد";
 
+ sendMessage({
+  type:"battleReady",
+  roomId:currentRoom,
+  grid:myGrid,
+  ships:ships.map(s=>({size:s.size,cells:s.cells}))
+ });
 
-    ships.forEach(ship => {
-
-        let placed = false;
-        let attempts = 0;
-
-
-        while (
-            !placed &&
-            attempts < 1000
-        ) {
-
-            attempts++;
-
-
-            const horizontal =
-                Math.random() > 0.5;
-
-
-            const row =
-                Math.floor(
-                    Math.random() * 10
-                );
-
-
-            const col =
-                Math.floor(
-                    Math.random() * 10
-                );
-
-
-            const cells = [];
-
-
-            for (
-                let i = 0;
-                i < ship.size;
-                i++
-            ) {
-
-                const r =
-                    horizontal
-                        ? row
-                        : row + i;
-
-                const c =
-                    horizontal
-                        ? col + i
-                        : col;
-
-
-                if (
-                    r < 0 ||
-                    r >= 10 ||
-                    c < 0 ||
-                    c >= 10 ||
-                    myGrid[r][c] !== ""
-                ) {
-
-                    cells.length = 0;
-
-                    break;
-                }
-
-
-                cells.push([r, c]);
-            }
-
-
-            if (
-                cells.length ===
-                ship.size
-            ) {
-
-                cells.forEach(
-                    ([r, c]) => {
-
-                        myGrid[r][c] =
-                            "ship";
-                    }
-                );
-
-                ship.cells = cells;
-
-                placed = true;
-            }
-        }
-    });
-
-
-    renderBoards();
+ setStatus("prepStatus","✅ تم تأكيد ترتيبك، في انتظار الخصم...");
 }
 
+/* BATTLE */
 
-randomizeShips();
+function startBattle(data){
+ stopPrepTimer();
+ gamePhase="battle";
+ isBattleReady=true;
+ selectedTarget=null;
+ isMyTurn=data.currentPlayerId===playerId;
 
+ document.getElementById("prepArea").style.display="none";
+ document.getElementById("placementControls").style.display="none";
+ document.getElementById("weaponsArea").style.display="block";
+
+ document.getElementById("turnBox").textContent=
+  isMyTurn?"🎯 دورك":"⏳ الدور عند الخصم";
+
+ document.getElementById("gameStatus").textContent=
+  isMyTurn?"اختر السلاح ثم اضغط على خانة في خريطتك":"انتظر دور الخصم";
+
+ weapons={normal:Infinity,bomb:2};
+ document.getElementById("bombAmmo").textContent="2";
+ selectWeapon("normal");
+ renderBoard();
+}
+
+function selectWeapon(weapon){
+ if(gamePhase!=="battle")return;
+ if(weapon==="bomb"&&weapons.bomb<=0){
+  setStatus("gameStatus","❌ لا توجد قنابل متبقية");
+  return;
+ }
+
+ selectedWeapon=weapon;
+
+ document.getElementById("normalWeapon").classList.toggle("selected",weapon==="normal");
+ document.getElementById("bombWeapon").classList.toggle("selected",weapon==="bomb");
+
+ setStatus("gameStatus",
+  isMyTurn
+   ? weapon==="normal"
+     ?"🎯 القذيفة: اضغط على خانة في خريطتك"
+     :"💣 القنبلة: اختر مركز منطقة 3×3"
+   :"⏳ انتظر دور الخصم");
+}
+
+function fireSelectedWeapon(){
+ if(gamePhase!=="battle"||!isMyTurn){
+  setStatus("gameStatus","ليس دورك الآن");
+  return;
+ }
+
+ if(selectedTarget===null){
+  setStatus("gameStatus","اختر خانة من خريطتك أولاً");
+  return;
+ }
+
+ if(selectedWeapon==="bomb"&&weapons.bomb<=0){
+  setStatus("gameStatus","❌ لا توجد قنابل متبقية");
+  return;
+ }
+
+ sendMessage({
+  type:"attack",
+  roomId:currentRoom,
+  weapon:selectedWeapon,
+  row:selectedTarget.row,
+  col:selectedTarget.col
+ });
+
+ selectedTarget=null;
+}
+
+function renderBoard(){
+ const board=document.getElementById("myBoard");
+ board.innerHTML="";
+
+ for(let row=0;row<10;row++){
+  for(let col=0;col<10;col++){
+   const cell=document.createElement("div");
+   cell.className="cell";
+
+   if(myGrid[row][col]==="ship")cell.classList.add("ship");
+   if(myGrid[row][col]==="hit")cell.classList.add("hit");
+   if(myGrid[row][col]==="miss")cell.classList.add("miss");
+
+   if(gamePhase==="battle"&&isMyTurn){
+    cell.classList.add("attackable");
+    cell.onclick=()=>selectTarget(row,col);
+   }
+
+   board.appendChild(cell);
+  }
+ }
+}
+
+function selectTarget(row,col){
+ if(gamePhase!=="battle"||!isMyTurn)return;
+
+ if(myGrid[row][col]==="hit"||myGrid[row][col]==="miss"){
+  setStatus("gameStatus","❌ تم استهداف هذه الخانة من قبل");
+  return;
+ }
+
+ selectedTarget={row,col};
+
+ setStatus("gameStatus",
+  selectedWeapon==="bomb"
+   ?"💣 تم اختيار مركز القنبلة، اضغط إطلاق"
+   :"🎯 تم اختيار الخانة، اضغط إطلاق");
+}
+
+function applyAttackResult(data){
+ if(data.attackerId===playerId){
+  if(data.weapon==="bomb"&&weapons.bomb>0){
+   weapons.bomb--;
+   document.getElementById("bombAmmo").textContent=weapons.bomb;
+  }
+ }
+
+ if(Array.isArray(data.cells)){
+  data.cells.forEach(c=>{
+   const r=Number(c.row),col=Number(c.col);
+   if(r>=0&&r<10&&col>=0&&col<10){
+    if(data.attackerId===playerId){
+     /* نتيجة ضرب الخصم غير معروضة لأن خريطة الخصم مخفية */
+    }else{
+     myGrid[r][col]=c.hit?"hit":"miss";
+    }
+   }
+  });
+ }
+
+ isMyTurn=data.nextPlayerId===playerId;
+
+ document.getElementById("turnBox").textContent=
+  isMyTurn?"🎯 دورك":"⏳ الدور عند الخصم";
+
+ if(data.attackerId===playerId){
+  setStatus("gameStatus",data.hit?"💥 إصابة!":"💨 لم تصب أي سفينة");
+  playSound(data.hit?"hit":"miss");
+ }else{
+  setStatus("gameStatus",data.hit?"💥 أصابك الخصم!":"💨 الخصم لم يصب");
+  playSound(data.hit?"hit":"miss");
+ }
+
+ renderBoard();
+}
+
+function showReward(data){
+ const text=data.reward==="bomb"
+  ?"💣 حصلت على قنبلة إضافية!"
+  :"🎁 حصلت على مكافأة!";
+
+ setStatus("gameStatus","🚢 تم إغراق سفينة! "+text);
+
+ if(data.reward==="bomb"){
+  weapons.bomb++;
+  document.getElementById("bombAmmo").textContent=weapons.bomb;
+ }
+
+ playSound("sink");
+}
+
+/* SOUND */
+
+function playSound(type){
+ try{
+  const AudioContext=window.AudioContext||window.webkitAudioContext;
+  if(!AudioContext)return;
+
+  const ctx=new AudioContext();
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  const now=ctx.currentTime;
+
+  if(type==="hit"){
+   osc.frequency.setValueAtTime(180,now);
+   osc.frequency.exponentialRampToValueAtTime(70,now+.25);
+  }else if(type==="miss"){
+   osc.frequency.setValueAtTime(300,now);
+   osc.frequency.exponentialRampToValueAtTime(120,now+.15);
+  }else{
+   osc.frequency.setValueAtTime(100,now);
+   osc.frequency.exponentialRampToValueAtTime(40,now+.5);
+  }
+
+  gain.gain.setValueAtTime(.12,now);
+  gain.gain.exponentialRampToValueAtTime(.001,now+.5);
+
+  osc.start(now);
+  osc.stop(now+.5);
+ }catch(e){}
+}
 </script>
 
 </body>
