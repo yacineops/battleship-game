@@ -7,10 +7,6 @@ const PORT = process.env.PORT || 8080;
 
 const BOARD_SIZE = 10;
 
-// ===============================
-// HTTP SERVER
-// ===============================
-
 const server = http.createServer((req, res) => {
 
     if (
@@ -19,10 +15,7 @@ const server = http.createServer((req, res) => {
     ) {
 
         const filePath =
-            path.join(
-                __dirname,
-                "index.html"
-            );
+            path.join(__dirname, "index.html");
 
         fs.readFile(
             filePath,
@@ -76,28 +69,24 @@ const server = http.createServer((req, res) => {
     res.end("Not Found");
 });
 
-// ===============================
-// WEBSOCKET
-// ===============================
 
 const wss =
     new WebSocket.Server({
         server
     });
 
-const rooms = new Map();
-const connections = new Set();
 
-// اللاعبون الذين ضغطوا
-// "لعب أونلاين" وينتظرون خصمًا
+const rooms = new Map();
+
 const matchmakingQueue = [];
 
 let nextPlayerId = 1;
 let nextRoomId = 1;
 
-// ===============================
-// HELPERS
-// ===============================
+
+/* =========================
+   HELPERS
+========================= */
 
 function send(ws, data) {
 
@@ -113,6 +102,19 @@ function send(ws, data) {
     );
 }
 
+
+function createEmptyGrid() {
+
+    return Array.from(
+        {
+            length: BOARD_SIZE
+        },
+        () =>
+            Array(BOARD_SIZE).fill("")
+    );
+}
+
+
 function createPlayer(
     ws,
     name = "لاعب"
@@ -120,13 +122,12 @@ function createPlayer(
 
     return {
 
-        id: String(
-            nextPlayerId++
-        ),
+        id: String(nextPlayerId++),
 
-        name: String(
-            name || "لاعب"
-        ).slice(0, 30),
+        name:
+            String(
+                name || "لاعب"
+            ).slice(0, 30),
 
         ws,
 
@@ -147,18 +148,6 @@ function createPlayer(
     };
 }
 
-function createEmptyGrid() {
-
-    return Array.from(
-        {
-            length: BOARD_SIZE
-        },
-        () =>
-            Array(
-                BOARD_SIZE
-            ).fill("")
-    );
-}
 
 function createRoomCode() {
 
@@ -177,6 +166,7 @@ function createRoomCode() {
 
     return code;
 }
+
 
 function createRoom(
     roomName,
@@ -197,29 +187,29 @@ function createRoom(
         players:
             [owner],
 
-        started:
-            false,
+        started: false,
 
-        currentPlayerId:
-            null,
+        currentPlayerId: null,
 
-        winnerId:
-            null,
+        winnerId: null,
 
-        onlineMatch:
-            false
+        onlineMatch: false
     };
+
 
     rooms.set(
         room.id,
         room
     );
 
+
     owner.roomId =
         room.id;
 
+
     return room;
 }
+
 
 function getRoom(player) {
 
@@ -237,6 +227,7 @@ function getRoom(player) {
     );
 }
 
+
 function getOpponent(
     room,
     player
@@ -248,10 +239,23 @@ function getOpponent(
 
     return room.players.find(
         other =>
-            other.id !==
-            player.id
+            other.id !== player.id
     ) || null;
 }
+
+
+function isPlayerConnected(
+    player
+) {
+
+    return !!(
+        player &&
+        player.ws &&
+        player.ws.readyState ===
+            WebSocket.OPEN
+    );
+}
+
 
 function broadcastRoom(
     room,
@@ -262,17 +266,16 @@ function broadcastRoom(
         return;
     }
 
-    for (
-        const player of
-        room.players
-    ) {
-
-        send(
-            player.ws,
-            data
-        );
-    }
+    room.players.forEach(
+        player => {
+            send(
+                player.ws,
+                data
+            );
+        }
+    );
 }
+
 
 function sendRoomInfo(room) {
 
@@ -280,58 +283,62 @@ function sendRoomInfo(room) {
         return;
     }
 
-    for (
-        const player of
-        room.players
-    ) {
+    room.players.forEach(
+        player => {
 
-        send(
-            player.ws,
-            {
-                type:
-                    "roomInfo",
+            send(
+                player.ws,
+                {
+                    type: "roomInfo",
 
-                roomId:
-                    room.id,
+                    roomId:
+                        room.id,
 
-                roomName:
-                    room.name,
+                    roomName:
+                        room.name,
 
-                players:
-                    room.players.map(
-                        other => ({
-                            id:
-                                other.id,
+                    players:
+                        room.players.map(
+                            other => ({
+                                id:
+                                    other.id,
 
-                            name:
-                                other.name,
+                                name:
+                                    other.name,
 
-                            ready:
-                                other.ready,
+                                ready:
+                                    other.ready,
 
-                            battleReady:
-                                other.battleReady
-                        })
-                    )
-            }
-        );
-    }
+                                battleReady:
+                                    other.battleReady
+                            })
+                        )
+                }
+            );
+
+        }
+    );
 }
 
-// ===============================
-// MATCHMAKING
-// ===============================
+
+/* =========================
+   MATCHMAKING
+========================= */
 
 function removeFromMatchmaking(
     player
 ) {
 
-    const index =
-        matchmakingQueue.indexOf(
-            player
-        );
+    let index;
 
-    if (index !== -1) {
+    while (
+        (
+            index =
+                matchmakingQueue.indexOf(
+                    player
+                )
+        ) !== -1
+    ) {
 
         matchmakingQueue.splice(
             index,
@@ -340,15 +347,13 @@ function removeFromMatchmaking(
     }
 }
 
+
 function findMatch(player) {
 
-    removeFromMatchmaking(
-        player
-    );
+    removeFromMatchmaking(player);
 
-    if (
-        player.roomId
-    ) {
+
+    if (player.roomId) {
 
         send(
             player.ws,
@@ -362,9 +367,9 @@ function findMatch(player) {
         return;
     }
 
-    matchmakingQueue.push(
-        player
-    );
+
+    matchmakingQueue.push(player);
+
 
     send(
         player.ws,
@@ -375,8 +380,10 @@ function findMatch(player) {
         }
     );
 
+
     tryMatchPlayers();
 }
+
 
 function tryMatchPlayers() {
 
@@ -390,21 +397,14 @@ function tryMatchPlayers() {
         const player2 =
             matchmakingQueue.shift();
 
+
         if (
-            !isPlayerConnected(
-                player1
-            )
+            !isPlayerConnected(player1) ||
+            !isPlayerConnected(player2)
         ) {
             continue;
         }
 
-        if (
-            !isPlayerConnected(
-                player2
-            )
-        ) {
-            continue;
-        }
 
         if (
             player1.roomId ||
@@ -413,15 +413,15 @@ function tryMatchPlayers() {
             continue;
         }
 
+
         const room =
             createRoom(
                 "مباراة أونلاين",
                 player1
             );
 
-        room.players.push(
-            player2
-        );
+
+        room.players.push(player2);
 
         player2.roomId =
             room.id;
@@ -429,11 +429,11 @@ function tryMatchPlayers() {
         room.onlineMatch =
             true;
 
+
         send(
             player1.ws,
             {
-                type:
-                    "matchFound",
+                type: "matchFound",
 
                 roomId:
                     room.id,
@@ -446,11 +446,11 @@ function tryMatchPlayers() {
             }
         );
 
+
         send(
             player2.ws,
             {
-                type:
-                    "matchFound",
+                type: "matchFound",
 
                 roomId:
                     room.id,
@@ -463,36 +463,28 @@ function tryMatchPlayers() {
             }
         );
 
+
         sendRoomInfo(room);
     }
 }
 
-function isPlayerConnected(
-    player
-) {
 
-    return (
-        player &&
-        player.ws &&
-        player.ws.readyState ===
-            WebSocket.OPEN
-    );
-}
-
-// ===============================
-// GRID
-// ===============================
+/* =========================
+   GRID
+========================= */
 
 function normalizeGrid(grid) {
 
     const result =
         createEmptyGrid();
 
+
     if (
         !Array.isArray(grid)
     ) {
         return result;
     }
+
 
     for (
         let row = 0;
@@ -508,6 +500,7 @@ function normalizeGrid(grid) {
             continue;
         }
 
+
         for (
             let col = 0;
             col < BOARD_SIZE;
@@ -516,6 +509,7 @@ function normalizeGrid(grid) {
 
             const value =
                 grid[row][col];
+
 
             if (
                 value === "ship" ||
@@ -526,23 +520,21 @@ function normalizeGrid(grid) {
                 result[row][col] =
                     value;
 
-            } else {
-
-                result[row][col] =
-                    "";
             }
+
         }
     }
+
 
     return result;
 }
 
-function getShipCells(
-    grid
-) {
+
+function getShipCells(grid) {
 
     const cells =
         new Set();
+
 
     for (
         let row = 0;
@@ -570,18 +562,18 @@ function getShipCells(
         }
     }
 
+
     return cells;
 }
+
 
 function resetPlayerBattleData(
     player
 ) {
 
-    player.ready =
-        false;
+    player.ready = false;
 
-    player.battleReady =
-        false;
+    player.battleReady = false;
 
     player.grid =
         createEmptyGrid();
@@ -593,73 +585,10 @@ function resetPlayerBattleData(
         new Set();
 }
 
-// ===============================
-// START BATTLE
-// ===============================
 
-function startBattle(room) {
-
-    if (
-        !room ||
-        room.players.length !== 2
-    ) {
-        return;
-    }
-
-    if (
-        room.started
-    ) {
-        return;
-    }
-
-    const firstPlayer =
-        room.players[0];
-
-    room.started =
-        true;
-
-    room.currentPlayerId =
-        firstPlayer.id;
-
-    room.winnerId =
-        null;
-
-    for (
-        const player of
-        room.players
-    ) {
-
-        send(
-            player.ws,
-            {
-                type:
-                    "startGame",
-
-                roomId:
-                    room.id,
-
-                grid:
-                    player.grid,
-
-                firstPlayer:
-                    firstPlayer.id,
-
-                playerId:
-                    player.id,
-
-                opponentId:
-                    getOpponent(
-                        room,
-                        player
-                    )?.id || null
-            }
-        );
-    }
-}
-
-// ===============================
-// CONNECT
-// ===============================
+/* =========================
+   CONNECT
+========================= */
 
 function handleConnect(
     player,
@@ -678,11 +607,11 @@ function handleConnect(
             ).slice(0, 30);
     }
 
+
     send(
         player.ws,
         {
-            type:
-                "connected",
+            type: "connected",
 
             playerId:
                 player.id,
@@ -693,29 +622,25 @@ function handleConnect(
     );
 }
 
-// ===============================
-// CREATE ROOM
-// ===============================
+
+/* =========================
+   CREATE ROOM
+========================= */
 
 function handleCreateRoom(
     player,
     message
 ) {
 
-    removeFromMatchmaking(
-        player
-    );
+    removeFromMatchmaking(player);
 
-    if (
-        player.roomId
-    ) {
+
+    if (player.roomId) {
 
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "أنت داخل غرفة بالفعل"
             }
@@ -723,6 +648,7 @@ function handleCreateRoom(
 
         return;
     }
+
 
     if (
         message.playerName ||
@@ -735,6 +661,7 @@ function handleCreateRoom(
                 message.name
             ).slice(0, 30);
     }
+
 
     const room =
         createRoom(
@@ -743,144 +670,11 @@ function handleCreateRoom(
             player
         );
 
-    send(
-        player.ws,
-        {
-            type:
-                "roomCreated",
-
-            roomId:
-                room.id,
-
-            roomName:
-                room.name,
-
-            playerId:
-                player.id,
-
-            waiting:
-                true
-        }
-    );
-
-    sendRoomInfo(room);
-}
-
-// ===============================
-// JOIN ROOM
-// ===============================
-
-function handleJoinRoom(
-    player,
-    message
-) {
-
-    removeFromMatchmaking(
-        player
-    );
-
-    if (
-        player.roomId
-    ) {
-
-        send(
-            player.ws,
-            {
-                type:
-                    "error",
-
-                message:
-                    "أنت داخل غرفة بالفعل"
-            }
-        );
-
-        return;
-    }
-
-    const roomId =
-        String(
-            message.roomId ||
-            message.roomCode ||
-            ""
-        ).trim();
-
-    if (!roomId) {
-
-        send(
-            player.ws,
-            {
-                type:
-                    "error",
-
-                message:
-                    "أدخل رمز الغرفة"
-            }
-        );
-
-        return;
-    }
-
-    const room =
-        rooms.get(roomId);
-
-    if (!room) {
-
-        send(
-            player.ws,
-            {
-                type:
-                    "error",
-
-                message:
-                    "الغرفة غير موجودة"
-            }
-        );
-
-        return;
-    }
-
-    if (
-        room.players.length >= 2
-    ) {
-
-        send(
-            player.ws,
-            {
-                type:
-                    "error",
-
-                message:
-                    "الغرفة ممتلئة"
-            }
-        );
-
-        return;
-    }
-
-    if (
-        message.playerName ||
-        message.name
-    ) {
-
-        player.name =
-            String(
-                message.playerName ||
-                message.name
-            ).slice(0, 30);
-    }
-
-    room.players.push(
-        player
-    );
-
-    player.roomId =
-        room.id;
 
     send(
         player.ws,
         {
-            type:
-                "roomJoined",
+            type: "roomCreated",
 
             roomId:
                 room.id,
@@ -893,14 +687,141 @@ function handleJoinRoom(
         }
     );
 
+
+    sendRoomInfo(room);
+}
+
+
+/* =========================
+   JOIN ROOM
+========================= */
+
+function handleJoinRoom(
+    player,
+    message
+) {
+
+    removeFromMatchmaking(player);
+
+
+    if (player.roomId) {
+
+        send(
+            player.ws,
+            {
+                type: "error",
+                message:
+                    "أنت داخل غرفة بالفعل"
+            }
+        );
+
+        return;
+    }
+
+
+    const roomId =
+        String(
+            message.roomId ||
+            message.roomCode ||
+            ""
+        ).trim();
+
+
+    if (!roomId) {
+
+        send(
+            player.ws,
+            {
+                type: "error",
+                message:
+                    "أدخل رمز الغرفة"
+            }
+        );
+
+        return;
+    }
+
+
+    const room =
+        rooms.get(roomId);
+
+
+    if (!room) {
+
+        send(
+            player.ws,
+            {
+                type: "error",
+                message:
+                    "الغرفة غير موجودة"
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        room.players.length >= 2
+    ) {
+
+        send(
+            player.ws,
+            {
+                type: "error",
+                message:
+                    "الغرفة ممتلئة"
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        message.playerName ||
+        message.name
+    ) {
+
+        player.name =
+            String(
+                message.playerName ||
+                message.name
+            ).slice(0, 30);
+    }
+
+
+    room.players.push(player);
+
+    player.roomId =
+        room.id;
+
+
+    send(
+        player.ws,
+        {
+            type: "roomJoined",
+
+            roomId:
+                room.id,
+
+            roomName:
+                room.name,
+
+            playerId:
+                player.id
+        }
+    );
+
+
     const owner =
         room.players[0];
+
 
     send(
         owner.ws,
         {
-            type:
-                "playerJoined",
+            type: "playerJoined",
 
             playerId:
                 player.id,
@@ -910,28 +831,27 @@ function handleJoinRoom(
         }
     );
 
+
     sendRoomInfo(room);
 }
 
-// ===============================
-// READY
-// ===============================
 
-function handleReady(
-    player
-) {
+/* =========================
+   READY
+========================= */
+
+function handleReady(player) {
 
     const room =
         getRoom(player);
+
 
     if (!room) {
 
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "لست داخل غرفة"
             }
@@ -940,14 +860,31 @@ function handleReady(
         return;
     }
 
-    player.ready =
-        true;
+
+    if (
+        room.players.length !== 2
+    ) {
+
+        send(
+            player.ws,
+            {
+                type: "error",
+                message:
+                    "انتظر دخول لاعب آخر"
+            }
+        );
+
+        return;
+    }
+
+
+    player.ready = true;
+
 
     broadcastRoom(
         room,
         {
-            type:
-                "playerReady",
+            type: "playerReady",
 
             playerId:
                 player.id,
@@ -957,18 +894,87 @@ function handleReady(
         }
     );
 
+
     sendRoomInfo(room);
 
+
     /*
-        زر جاهز يستخدم لإعلام الغرفة فقط.
-        بدء المعركة يتم بعد إرسال
-        ترتيب السفن من الطرفين.
+        عندما يصبح اللاعبان جاهزين:
+        نرسلهما إلى شاشة وضع السفن.
     */
+
+    if (
+        room.players.every(
+            p => p.ready
+        )
+    ) {
+
+        startBattlePreparation(room);
+    }
 }
 
-// ===============================
-// BATTLE READY
-// ===============================
+
+/* =========================
+   START BATTLE PREPARATION
+========================= */
+
+function startBattlePreparation(room) {
+
+    if (
+        !room ||
+        room.players.length !== 2
+    ) {
+        return;
+    }
+
+
+    room.started = false;
+
+    room.currentPlayerId = null;
+
+    room.winnerId = null;
+
+
+    room.players.forEach(
+        player => {
+
+            player.battleReady = false;
+
+            player.attackedCells =
+                new Set();
+
+            send(
+                player.ws,
+                {
+                    type: "startGame",
+
+                    roomId:
+                        room.id,
+
+                    grid:
+                        player.grid,
+
+                    firstPlayer: null,
+
+                    playerId:
+                        player.id,
+
+                    opponentId:
+                        getOpponent(
+                            room,
+                            player
+                        )?.id || null
+                }
+            );
+
+        }
+    );
+}
+
+
+/* =========================
+   BATTLE READY
+========================= */
 
 function handleBattleReady(
     player,
@@ -978,14 +984,13 @@ function handleBattleReady(
     const room =
         getRoom(player);
 
+
     if (!room) {
 
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "لست داخل غرفة"
             }
@@ -994,6 +999,7 @@ function handleBattleReady(
         return;
     }
 
+
     if (
         room.players.length !== 2
     ) {
@@ -1001,9 +1007,7 @@ function handleBattleReady(
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "انتظر دخول لاعب آخر"
             }
@@ -1012,21 +1016,45 @@ function handleBattleReady(
         return;
     }
 
-    player.grid =
+
+    const grid =
         normalizeGrid(
             message.grid
         );
 
-    player.shipCells =
-        getShipCells(
-            player.grid
+
+    const shipCells =
+        getShipCells(grid);
+
+
+    if (
+        shipCells.size === 0
+    ) {
+
+        send(
+            player.ws,
+            {
+                type: "error",
+                message:
+                    "يجب وضع السفن أولاً"
+            }
         );
+
+        return;
+    }
+
+
+    player.grid = grid;
+
+    player.shipCells =
+        shipCells;
 
     player.attackedCells =
         new Set();
 
     player.battleReady =
         true;
+
 
     broadcastRoom(
         room,
@@ -1039,13 +1067,13 @@ function handleBattleReady(
         }
     );
 
+
     sendRoomInfo(room);
 
+
     if (
-        room.players.length === 2 &&
         room.players.every(
-            other =>
-                other.battleReady
+            p => p.battleReady
         )
     ) {
 
@@ -1053,9 +1081,87 @@ function handleBattleReady(
     }
 }
 
-// ===============================
-// ATTACK
-// ===============================
+
+/* =========================
+   START BATTLE
+========================= */
+
+function startBattle(room) {
+
+    if (
+        !room ||
+        room.players.length !== 2
+    ) {
+        return;
+    }
+
+
+    if (room.started) {
+        return;
+    }
+
+
+    const firstPlayer =
+        room.players[0];
+
+
+    room.started = true;
+
+    room.currentPlayerId =
+        firstPlayer.id;
+
+    room.winnerId = null;
+
+
+    room.players.forEach(
+        player => {
+
+            send(
+                player.ws,
+                {
+                    type:
+                        "startGame",
+
+                    roomId:
+                        room.id,
+
+                    grid:
+                        player.grid,
+
+                    firstPlayer:
+                        firstPlayer.id,
+
+                    playerId:
+                        player.id,
+
+                    opponentId:
+                        getOpponent(
+                            room,
+                            player
+                        )?.id || null
+                }
+            );
+
+        }
+    );
+
+
+    broadcastRoom(
+        room,
+        {
+            type:
+                "turnChanged",
+
+            currentPlayerId:
+                room.currentPlayerId
+        }
+    );
+}
+
+
+/* =========================
+   ATTACK
+========================= */
 
 function handleAttack(
     player,
@@ -1065,6 +1171,7 @@ function handleAttack(
     const room =
         getRoom(player);
 
+
     if (
         !room ||
         !room.started
@@ -1073,9 +1180,7 @@ function handleAttack(
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "المعركة لم تبدأ بعد"
             }
@@ -1083,6 +1188,7 @@ function handleAttack(
 
         return;
     }
+
 
     if (
         room.currentPlayerId !==
@@ -1092,9 +1198,7 @@ function handleAttack(
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "ليس دورك"
             }
@@ -1103,20 +1207,20 @@ function handleAttack(
         return;
     }
 
+
     const opponent =
         getOpponent(
             room,
             player
         );
 
+
     if (!opponent) {
 
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "لا يوجد خصم"
             }
@@ -1125,11 +1229,13 @@ function handleAttack(
         return;
     }
 
+
     const row =
         Number(message.row);
 
     const col =
         Number(message.col);
+
 
     if (
         !Number.isInteger(row) ||
@@ -1143,9 +1249,7 @@ function handleAttack(
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "موقع الهجوم غير صحيح"
             }
@@ -1154,23 +1258,21 @@ function handleAttack(
         return;
     }
 
+
     const cell =
         row *
             BOARD_SIZE +
         col;
 
+
     if (
-        player.attackedCells.has(
-            cell
-        )
+        player.attackedCells.has(cell)
     ) {
 
         send(
             player.ws,
             {
-                type:
-                    "error",
-
+                type: "error",
                 message:
                     "لقد هاجمت هذه الخانة من قبل"
             }
@@ -1179,14 +1281,13 @@ function handleAttack(
         return;
     }
 
-    player.attackedCells.add(
-        cell
-    );
+
+    player.attackedCells.add(cell);
+
 
     const hit =
-        opponent.shipCells.has(
-            cell
-        );
+        opponent.shipCells.has(cell);
+
 
     if (hit) {
 
@@ -1198,6 +1299,7 @@ function handleAttack(
         opponent.grid[row][col] =
             "miss";
     }
+
 
     const attackResult = {
 
@@ -1219,42 +1321,41 @@ function handleAttack(
                 : opponent.id
     };
 
+
     send(
         player.ws,
         attackResult
     );
+
 
     send(
         opponent.ws,
         attackResult
     );
 
+
     const allShipsDestroyed =
-        [
-            ...opponent.shipCells
-        ].every(
+        opponent.shipCells.size > 0 &&
+        [...opponent.shipCells].every(
             shipCell =>
                 player.attackedCells.has(
                     shipCell
                 )
         );
 
-    if (
-        opponent.shipCells.size > 0 &&
-        allShipsDestroyed
-    ) {
 
-        room.started =
-            false;
+    if (allShipsDestroyed) {
+
+        room.started = false;
 
         room.winnerId =
             player.id;
 
+
         broadcastRoom(
             room,
             {
-                type:
-                    "gameOver",
+                type: "gameOver",
 
                 winner:
                     player.id,
@@ -1270,18 +1371,13 @@ function handleAttack(
         return;
     }
 
-    /*
-        إذا أصاب اللاعب:
-        يبقى دوره.
 
-        إذا أخطأ:
-        ينتقل الدور للخصم.
-    */
     if (!hit) {
 
         room.currentPlayerId =
             opponent.id;
     }
+
 
     broadcastRoom(
         room,
@@ -1295,72 +1391,109 @@ function handleAttack(
     );
 }
 
-// ===============================
-// LEAVE ROOM
-// ===============================
 
-function handleLeaveRoom(
-    player
-) {
+/* =========================
+   ROOM LIST
+========================= */
 
-    removeFromMatchmaking(
-        player
+function sendRoomList(player) {
+
+    const availableRooms =
+        [...rooms.values()]
+            .filter(
+                room =>
+                    room.players.length < 2 &&
+                    !room.started
+            )
+            .map(
+                room => ({
+                    roomId:
+                        room.id,
+
+                    roomName:
+                        room.name,
+
+                    players:
+                        room.players.length
+                })
+            );
+
+
+    send(
+        player.ws,
+        {
+            type:
+                "roomList",
+
+            rooms:
+                availableRooms
+        }
     );
+}
+
+
+/* =========================
+   LEAVE
+========================= */
+
+function handleLeaveRoom(player) {
+
+    removeFromMatchmaking(player);
+
 
     const room =
         getRoom(player);
 
+
     if (!room) {
 
-        player.roomId =
-            null;
+        player.roomId = null;
 
         return;
     }
 
+
     room.players =
         room.players.filter(
             other =>
-                other.id !==
-                player.id
+                other.id !== player.id
         );
 
-    player.roomId =
-        null;
 
-    resetPlayerBattleData(
-        player
-    );
+    player.roomId = null;
+
+    resetPlayerBattleData(player);
+
 
     if (
         room.players.length === 0
     ) {
 
-        rooms.delete(
-            room.id
-        );
+        rooms.delete(room.id);
 
         return;
     }
 
+
     const remainingPlayer =
         room.players[0];
+
 
     remainingPlayer.roomId =
         room.id;
 
-    room.started =
-        false;
 
-    room.currentPlayerId =
-        null;
+    room.started = false;
 
-    room.winnerId =
-        null;
+    room.currentPlayerId = null;
+
+    room.winnerId = null;
+
 
     resetPlayerBattleData(
         remainingPlayer
     );
+
 
     send(
         remainingPlayer.ws,
@@ -1373,14 +1506,14 @@ function handleLeaveRoom(
         }
     );
 
-    sendRoomInfo(
-        room
-    );
+
+    sendRoomInfo(room);
 }
 
-// ===============================
-// HANDLE MESSAGE
-// ===============================
+
+/* =========================
+   MESSAGE HANDLER
+========================= */
 
 function handleMessage(
     player,
@@ -1395,9 +1528,8 @@ function handleMessage(
         return;
     }
 
-    switch (
-        message.type
-    ) {
+
+    switch (message.type) {
 
         case "connect":
 
@@ -1408,6 +1540,7 @@ function handleMessage(
 
             break;
 
+
         case "join":
 
             handleConnect(
@@ -1417,6 +1550,7 @@ function handleMessage(
 
             break;
 
+
         case "setName":
 
             handleConnect(
@@ -1425,6 +1559,7 @@ function handleMessage(
             );
 
             break;
+
 
         case "findMatch":
 
@@ -1440,17 +1575,14 @@ function handleMessage(
                     ).slice(0, 30);
             }
 
-            findMatch(
-                player
-            );
+            findMatch(player);
 
             break;
 
+
         case "cancelMatch":
 
-            removeFromMatchmaking(
-                player
-            );
+            removeFromMatchmaking(player);
 
             send(
                 player.ws,
@@ -1462,6 +1594,7 @@ function handleMessage(
 
             break;
 
+
         case "createRoom":
 
             handleCreateRoom(
@@ -1470,6 +1603,7 @@ function handleMessage(
             );
 
             break;
+
 
         case "joinRoom":
 
@@ -1480,13 +1614,20 @@ function handleMessage(
 
             break;
 
-        case "ready":
 
-            handleReady(
-                player
-            );
+        case "roomList":
+
+            sendRoomList(player);
 
             break;
+
+
+        case "ready":
+
+            handleReady(player);
+
+            break;
+
 
         case "battleReady":
 
@@ -1497,6 +1638,7 @@ function handleMessage(
 
             break;
 
+
         case "attack":
 
             handleAttack(
@@ -1506,77 +1648,45 @@ function handleMessage(
 
             break;
 
+
         case "leaveRoom":
 
-            handleLeaveRoom(
-                player
-            );
+            handleLeaveRoom(player);
 
             break;
 
-        case "roomList":
-
-            send(
-                player.ws,
-                {
-                    type:
-                        "roomList",
-
-                    rooms:
-                        [
-                            ...rooms.values()
-                        ]
-                        .filter(
-                            room =>
-                                room.players.length < 2
-                        )
-                        .map(
-                            room => ({
-                                roomId:
-                                    room.id,
-
-                                roomName:
-                                    room.name,
-
-                                players:
-                                    room.players.length
-                            })
-                        )
-                }
-            );
-
-            break;
 
         case "ping":
 
             send(
                 player.ws,
                 {
-                    type:
-                        "pong"
+                    type: "pong"
                 }
             );
 
             break;
+
 
         default:
 
             send(
                 player.ws,
                 {
-                    type:
-                        "error",
-
+                    type: "error",
                     message:
                         "أمر غير معروف"
                 }
             );
+
+            break;
     }
 }
 
-// ===============================
-// WEBSOCKET CONNECTION
-// ===============================
+
+/* =========================
+   WEBSOCKET CONNECTION
+========================= */
 
 wss.on(
     "connection",
@@ -1588,7 +1698,6 @@ wss.on(
         ws.player =
             player;
 
-        connections.add(ws);
 
         send(
             ws,
@@ -1603,6 +1712,7 @@ wss.on(
                     player.name
             }
         );
+
 
         ws.on(
             "message",
@@ -1636,39 +1746,30 @@ wss.on(
             }
         );
 
+
         ws.on(
             "close",
             () => {
 
-                handleLeaveRoom(
-                    player
-                );
-
-                connections.delete(
-                    ws
-                );
+                handleLeaveRoom(player);
             }
         );
+
 
         ws.on(
             "error",
             () => {
 
-                handleLeaveRoom(
-                    player
-                );
-
-                connections.delete(
-                    ws
-                );
+                handleLeaveRoom(player);
             }
         );
     }
 );
 
-// ===============================
-// START SERVER
-// ===============================
+
+/* =========================
+   START
+========================= */
 
 server.listen(
     PORT,
